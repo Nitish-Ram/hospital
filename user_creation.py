@@ -10,25 +10,16 @@ try:
         database = 'hospital'
     )
     cur = conn.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS lookup_code (
-                item_id INT AUTO_INCREMENT PRIMARY KEY,
-                item_his_id INT,
-                item_name VARCHAR(100),
-                item_category VARCHAR(100),
-                item_if_active ENUM('Yes', 'No') DEFAULT 'Yes',
-                version INT DEFAULT 0,
-                edited_by INT NULL,
-                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS staff (
                 staff_id INT AUTO_INCREMENT PRIMARY KEY,
+                staff_his_id INT, 
                 cpr_no INT,
                 staff_name VARCHAR(100),
                 designation VARCHAR(100),
                 department VARCHAR(100),
                 user_name VARCHAR(100),
                 passcode VARCHAR(100),
-                access_level INT,
+                access_level INT DEFAULT 1,
                 dob DATE,
                 email VARCHAR(100),
                 phone_no VARCHAR(50),
@@ -39,6 +30,7 @@ try:
                 )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS patients (
                 patient_id INT AUTO_INCREMENT PRIMARY KEY,
+                patient_his_id INT,
                 cpr_no INT,
                 patient_name VARCHAR(100),
                 dob DATE,
@@ -47,7 +39,7 @@ try:
                 address VARCHAR(200),
                 next_of_kin VARCHAR(100),
                 relationship VARCHAR(50),
-                emergency_contact VARChAR(100),
+                emergency_contact VARCHAR(100),
                 patient_status INT,
                 FOREIGN KEY (patient_status) REFERENCES lookup_code(item_id),
                 version INT DEFAULT 0,
@@ -58,10 +50,10 @@ try:
 except Error as e:
     print(e)
 
-def create_staff():
+def create_staff(edited_by):
     while True:
         try:
-            cpr_no = int(input("Enter cpr number : "))
+            cpr_no = int(input("Enter staff's CPR number : "))
             break
         except ValueError:
             print("Enter only numbers.")
@@ -84,7 +76,7 @@ def create_staff():
             print("Passwords do not match.")
     while True:
         try:
-            dob_input = input("Enter date of birth (YYYY-MM-DD): ")
+            dob_input = input("Enter date of birth (YYYY-MM-DD) : ")
             dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
             break
         except ValueError:
@@ -92,9 +84,29 @@ def create_staff():
     email = input("Enter email : ")
     phone_no = input("Enter phone number : ")
     sql = '''INSERT INTO staff (
-                cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 '''
-    cur.execute(sql, (cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no))
+    cur.execute(sql, (cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by))
     conn.commit()
     print("Staff member created successfully.")
+
+def create_patient(edited_by):
+    while True:
+        try:
+            cpr_no = int(input("Enter patient's CPR number : "))
+            break
+        except ValueError:
+            print("Enter only numbers.")
+    patient_name = input("Enter patient's name : ")
+    while True:
+        try:
+            dob_input = ("Enter date of birth (YYYY-MM-DD) : ")
+            dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
+            break
+        except ValueError:
+            print("Invalid date format, use YYYY-MM-DD")
+    address = input("Enter patient's address : ")
+    next_of_kin = input("Enter name of patient's 'Next-of'kin' : ")
+    relationship = input(f"Enter patient's relationship with {next_of_kin} : ")
+    emergency_contact = input("Enter patient's emergency contact : ")
