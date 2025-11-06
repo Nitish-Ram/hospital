@@ -88,7 +88,7 @@ def create_staff(edited_by):
                 cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 '''
-    cur.execute(sql, (cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by))
+    cur.execute(sql, (0, cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by))
     conn.commit()
     print("Staff member created successfully.")
 

@@ -21,3 +21,21 @@ try:
                 )''')
 except Error as e:
     print(e)
+
+def add_items_lookup_code(edited_by):
+    while True:
+        item_name = input("Enter item name to add : ")
+        item_category = input("Enter category of item : ")
+        cur.execute("SELECT COUNT(*) FROM lookup_code WHERE item_name=%s AND item_category=%s", (item_name, item_category))
+        if cur.fetchone()[0] > 0:
+            print("This item already exists in the category.")
+            return
+        else:
+            break
+    query = '''INSERT INTO lookup_code (
+    item_his_id, item_name, item_category, edited_by
+    ) VALUES (%s, %s, %s, %s)
+        '''
+    cur.execute(query, (0, item_name, item_category, edited_by))
+    conn.commit()
+    print("Item added successfully.")
