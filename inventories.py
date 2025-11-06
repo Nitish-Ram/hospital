@@ -4,7 +4,7 @@ try:
     conn = connect(
         host = 'localhost',
         user = 'root',
-        password = 'test',
+        password = 'Fawaz@33448113',
         database = 'hospital'
     )
     cur = conn.cursor()
