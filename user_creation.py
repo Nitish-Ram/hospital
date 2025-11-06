@@ -42,6 +42,7 @@ try:
                 relationship VARCHAR(50),
                 emergency_contact VARCHAR(100),
                 patient_status INT,
+                is_active ENUM('Yes','No') DEFAULT 'Yes',
                 FOREIGN KEY (patient_status) REFERENCES lookup_code(item_id),
                 version INT DEFAULT 0,
                 edited_by INT NULL,
@@ -135,16 +136,27 @@ def create_patient(edited_by):
             print("Enter valid integer.")
 
     query = '''INSERT INTO patients (
-    patient_his_id, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     '''
-    cur.execute(query, (0, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by))
+    cur.execute(query, (cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by))
+    patient_id = cur.lastrowid
+    patient_his_id = patient_id
+    cur.execute('''UPDATE patient SET patient_his_id = %s
+                WHERE patient_id = %s)''',
+                (patient_his_id, patient_id))
     conn.commit()
     print("Patient record created successfully.")
 
-#--to update staff--
-def update_staff():
-    staff_id = int(input("Enter the Staff ID you want to update: "))
+#--to update staff record--
+
+def update_staff(edited_by):
+    while True:
+        try:
+            staff_id = int(input("Enter the Staff ID you want to update: "))
+            break
+        except ValueError:
+            print("Enter valid integer.")
     cur.execute("SELECT * FROM staff WHERE staff_id = %s AND is_active = 'Yes'", (staff_id,))
     old_data = cur.fetchone()
     if not old_data:
@@ -152,19 +164,74 @@ def update_staff():
         return
     staff_his_id = old_data[1] 
     print("Which field do you want to update?")
-    print("1) CPR number\n2) Name\n3) Designation\n4) Department\n5) Username\n6) Password\n7) Access Level\n8) Email\n9) Phone Number")
+    print("1) CPR number\n2) Name\n3) Designation\n4) Department\n5) Username\n6) Password\n7) Date-of-birth\n8) Access Level\n9) Email\n10) Phone Number")
     while True:
         try:
-            choice = int(input("Enter choice number: "))
-            if choice in range(1,10):
+            choice = int(input("Enter choice number : "))
+            if choice in range(1,11):
                 break
+            else:
+                print("Not valid choice. Try again.")
         except ValueError:
             print("Enter valid integer.")
-    new_data = list(old_data[2:])
-    new_value = input("Enter new value: ")
+    new_data = list(old_data[2:13])
+    if choice == 1 or choice == 8:
+        while True:
+            try:
+                new_value = int(input("Enter new value : "))
+                break
+            except ValueError:
+                print("Enter valid integer.")
+    else:
+        new_value = input("Enter new value: ")
     new_data[choice-1] = new_value
     query = '''INSERT INTO staff (staff_his_id, cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
-    cur.execute(query, (staff_his_id, *new_data, 1))
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+    cur.execute('''UPDATE staff SET is_active = 'No' WHERE staff_id = %s''', (staff_id,))
+    cur.execute(query, (staff_his_id, *new_data, edited_by))
     conn.commit()
     print("Staff record updated successfully.")
+
+#--to update patient record--
+
+def update_patient(edited_by):
+    while True:
+        try:
+            patient_id = int(input("Enter the patient ID you want to update : "))
+            break
+        except ValueError:
+            print("Enter valid integer.")
+    cur.execute('''SELECT * FROM patients WHERE patient_id = %s and is_active = 'Yes' ''', (patient_id,))
+    old_data = cur.fetchone()
+    if not old_data:
+        print("Patient not found.")
+        return
+    patient_his_id = old_data[1]
+    print("Which field do you want to update?")
+    print("\n1) CPR number\n2) Name\n3) DOB\n4) Email\n5) Phone number\n 6) Address\n7) Next-of-kin\n8) Relationship with 'Next-of-kin'\n9) Emergency contact")
+    while True:
+        try:
+            choice = int(input("Enter choice number : "))
+            if choice in range(1,10):
+                break
+            else:
+                print("Not valid choice. Try again.")
+        except ValueError:
+            print("Enter a valid integer.")
+    new_data = list(old_data[2:12])
+    if choice == 1:
+        while True:
+            try:
+                new_value = int(input("Enter new value : "))
+                break
+            except ValueError:
+                print("Enter valid integer.")
+    else:
+        new_value = input("Enter new value : ")
+    new_data[choice-1] = new_value
+    query = '''INSERT INTO patients (patient_his_id, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, edited_by)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+    cur.execute('''UPDATE patients SET is_active = 'No' where patient_id = %s''', (patient_id,))
+    cur.execute(query, (patient_his_id, *new_data, edited_by))
+    conn.commit()
+    print("Patient record updated successfully.")
