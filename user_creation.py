@@ -156,7 +156,7 @@ def update_staff():
     while True:
         try:
             choice = int(input("Enter choice number: "))
-            if choice in range(1,8):
+            if choice in range(1,10):
                 break
         except ValueError:
             print("Enter valid integer.")
