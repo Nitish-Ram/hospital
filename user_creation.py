@@ -1,6 +1,7 @@
 from mysql.connector import connect, Error
 from getpass import getpass
 from datetime import datetime
+from tabulate import tabulate
 
 try:
     conn = connect(
@@ -106,7 +107,32 @@ def create_patient(edited_by):
             break
         except ValueError:
             print("Invalid date format, use YYYY-MM-DD")
+    email = input("Enter patient's email : ")
+    phone_no = input("Enter patient's phone number : ")
     address = input("Enter patient's address : ")
     next_of_kin = input("Enter name of patient's 'Next-of'kin' : ")
     relationship = input(f"Enter patient's relationship with {next_of_kin} : ")
     emergency_contact = input("Enter patient's emergency contact : ")
+
+    #--to obtain patient status--
+
+    cur.execute('''SELECT item_id, item_name FROM lookup_code
+                WHERE item_category = 'patient_status' and item_if_active = "Yes"''')
+    statuses = cur.fetchall()
+    print(tabulate(statuses, headers=['ID', 'Status'], tablefmt='pretty'))
+    while True:
+        try:
+            patient_status = int(input("Enter status ID corresponding to the patient : "))
+            valid_id = [i[0] for i in statuses]
+            if patient_status in valid_id:
+                break
+        except ValueError:
+            print("Enter valid integer.")
+
+    query = '''INSERT INTO patients (
+    patient_his_id, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+    cur.execute(query, (0, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by))
+    conn.commit()
+    print("Patient record created successfully.")
