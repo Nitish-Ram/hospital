@@ -13,7 +13,7 @@ try:
     cur = conn.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS staff (
                 staff_id INT AUTO_INCREMENT PRIMARY KEY,
-                staff_his_id INT, 
+                staff_his_id INT NULL, 
                 cpr_no INT,
                 staff_name VARCHAR(100),
                 designation VARCHAR(100),
@@ -31,7 +31,7 @@ try:
                 )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS patients (
                 patient_id INT AUTO_INCREMENT PRIMARY KEY,
-                patient_his_id INT,
+                patient_his_id INT NULL,
                 cpr_no INT,
                 patient_name VARCHAR(100),
                 dob DATE,
@@ -84,11 +84,16 @@ def create_staff(edited_by):
             print("Invalid date format, use YYYY-MM-DD.")
     email = input("Enter email : ")
     phone_no = input("Enter phone number : ")
-    sql = '''INSERT INTO staff (
-                cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    query = '''INSERT INTO staff (
+    cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 '''
-    cur.execute(sql, (0, cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by))
+    cur.execute(query, (cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by))
+    staff_id = cur.lastrowid
+    staff_his_id = staff_id
+    cur.execute('''UPDATE staff SET staff_his_id = %s
+                where staff_id = %s''',
+                (staff_his_id, staff_id))
     conn.commit()
     print("Staff member created successfully.")
 
@@ -136,3 +141,30 @@ def create_patient(edited_by):
     cur.execute(query, (0, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by))
     conn.commit()
     print("Patient record created successfully.")
+
+#--to update staff--
+def update_staff():
+    staff_id = int(input("Enter the Staff ID you want to update: "))
+    cur.execute("SELECT * FROM staff WHERE staff_id = %s AND is_active = 'Yes'", (staff_id,))
+    old_data = cur.fetchone()
+    if not old_data:
+        print("Staff not found.")
+        return
+    staff_his_id = old_data[1] 
+    print("Which field do you want to update?")
+    print("1) CPR number\n2) Name\n3) Designation\n4) Department\n5) Username\n6) Password\n7) Access Level\n8) Email\n9) Phone Number")
+    while True:
+        try:
+            choice = int(input("Enter choice number: "))
+            if choice in range(1,10):
+                break
+        except ValueError:
+            print("Enter valid integer.")
+    new_data = list(old_data[2:])
+    new_value = input("Enter new value: ")
+    new_data[choice-1] = new_value
+    query = '''INSERT INTO staff (staff_his_id, cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+    cur.execute(query, (staff_his_id, *new_data, 1))
+    conn.commit()
+    print("Staff record updated successfully.")
