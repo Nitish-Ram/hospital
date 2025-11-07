@@ -65,17 +65,17 @@ def create_staff(edited_by):
     user_name = input("Enter a username : ")
     passcode = getpass("Enter a password : ")
     while True:
-        try:
-            access_level = int(input("Enter access level : "))
-            break
-        except ValueError:
-            print("Enter numbers only.")
-    while True:
         passcode_retype = getpass("Retype the password : ")
         if passcode_retype == passcode:
             break
         else:
             print("Passwords do not match.")
+    while True:
+        try:
+            access_level = int(input("Enter access level : "))
+            break
+        except ValueError:
+            print("Enter numbers only.")
     while True:
         try:
             dob_input = input("Enter date of birth (YYYY-MM-DD) : ")
@@ -162,7 +162,8 @@ def update_staff(edited_by):
     if not old_data:
         print("Staff not found.")
         return
-    staff_his_id = old_data[1] 
+    staff_his_id = old_data[1]
+    new_version = old_data[13] + 1
     print("Which field do you want to update?")
     print("1) CPR number\n2) Name\n3) Designation\n4) Department\n5) Username\n6) Password\n7) Date-of-birth\n8) Access Level\n9) Email\n10) Phone Number")
     while True:
@@ -185,10 +186,10 @@ def update_staff(edited_by):
     else:
         new_value = input("Enter new value: ")
     new_data[choice-1] = new_value
-    query = '''INSERT INTO staff (staff_his_id, cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, edited_by)
+    query = '''INSERT INTO staff (staff_his_id, cpr_no, staff_name, designation, department, user_name, passcode, access_level, dob, email, phone_no, version, edited_by)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
     cur.execute('''UPDATE staff SET is_active = 'No' WHERE staff_id = %s''', (staff_id,))
-    cur.execute(query, (staff_his_id, *new_data, edited_by))
+    cur.execute(query, (staff_his_id, *new_data, new_version, edited_by))
     conn.commit()
     print("Staff record updated successfully.")
 
