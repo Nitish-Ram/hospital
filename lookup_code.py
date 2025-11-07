@@ -146,8 +146,11 @@ def remove_items_lookup_code(edited_by):
                 print("Item not found. Try again.")
         except ValueError:
             print("Enter only integers.")
-    
-    cur.execute('''UPDATE lookup_code SET item_if_active = 'No'
-                WHERE item_id = %s''', (item_id,))
+
+    cur.execute('SELECT * FROM lookup_code where item_id = %s', (item_id,))
+    old_data = cur.fetchone()
+    new_version = old_data[5] + 1
+    cur.execute('''UPDATE lookup_code SET item_if_active = 'No', version = %s, edited_by = %s
+                WHERE item_id = %s''', (new_version, edited_by, item_id))
     conn.commit()
     print("Item removed successfully.")
