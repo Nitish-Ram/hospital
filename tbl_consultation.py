@@ -6,7 +6,7 @@ try:
     conn = connect(
         host = 'localhost',
         user = 'root',
-        password = 'Fawaz@33448113',
+        password = 'Ash@$#2304',
         database = 'hospital'
     )
     cur = conn.cursor()
@@ -40,16 +40,17 @@ except Error as e:
 def add_consultation(edited_by):
     try:
         appt_id = int(input("Enter Appointment ID: "))
-        doctor_id = int(input("Enter Doctor ID: "))
-        clinic = int(input("Enter Clinic Code: "))
         cons_date = input("Enter Consultation Date (YYYY-MM-DD): ")
         complaints = input("Enter Patient Complaints: ")
         diagnosis = input("Enter Diagnosis: ")
         cons_notes = input("Enter Consultation Notes: ")
-        #yes or no qs
+
+        #yes/no questions
+
         lab_test = input("Lab Test Required? (Yes/No): ")
         imaging_test = input("Imaging Test Required? (Yes/No): ")
         medication = input("Medication Prescribed? (Yes/No): ")
+        
         discharged = input("Discharged? (Yes/No): ")
         admission_to_ward = input("Admit to Ward? (Yes/No): ")
         followup_date = input("Enter Follow-up Date (YYYY-MM-DD or leave blank): ")
@@ -64,7 +65,7 @@ def add_consultation(edited_by):
         """
 
         cur.execute(query, (
-            appt_id, doctor_id, clinic, cons_date,
+            appt_id, edited_by, cons_date,
             complaints, diagnosis, cons_notes, lab_test, imaging_test,
             medication, discharged, admission_to_ward, followup_date,
             edited_by

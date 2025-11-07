@@ -208,6 +208,7 @@ def update_patient(edited_by):
         print("Patient not found.")
         return
     patient_his_id = old_data[1]
+    new_version = old_data[14] + 1
     print("Which field do you want to update?")
     print("\n1) CPR number\n2) Name\n3) DOB\n4) Email\n5) Phone number\n 6) Address\n7) Next-of-kin\n8) Relationship with 'Next-of-kin'\n9) Emergency contact")
     while True:
@@ -230,9 +231,9 @@ def update_patient(edited_by):
     else:
         new_value = input("Enter new value : ")
     new_data[choice-1] = new_value
-    query = '''INSERT INTO patients (patient_his_id, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, edited_by)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+    query = '''INSERT INTO patients (patient_his_id, cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, version, edited_by)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
     cur.execute('''UPDATE patients SET is_active = 'No' where patient_id = %s''', (patient_id,))
-    cur.execute(query, (patient_his_id, *new_data, edited_by))
+    cur.execute(query, (patient_his_id, *new_data, new_version, edited_by))
     conn.commit()
     print("Patient record updated successfully.")
