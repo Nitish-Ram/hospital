@@ -15,8 +15,6 @@ try:
                 adm_his_id INT,
                 patient_id INT,
                 adm_date DATE,
-                discharge_date DATE,
-                discharge_medication ENUM('Yes','No') DEFAULT 'No',
                 adm_doctor INT,
                 ward INT,
                 payment ENUM('Yes','No') DEFAULT 'No',
