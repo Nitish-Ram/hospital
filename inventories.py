@@ -1,4 +1,5 @@
 from mysql.connector import connect, Error
+from tabulate import tabulate
 
 try:
     conn = connect(
@@ -39,3 +40,116 @@ try:
                 ''')
 except Error as e:
     print(e)
+
+def add_inventory(edited_by):
+    try:
+
+        inv_name = input("Enter Inventory Item Name: ")
+        inv_category = input("Enter Category : ")
+
+        query = """
+        INSERT INTO inventories (inv_name, inv_category, edited_by)
+        VALUES (%s, %s, %s)
+        """
+
+        cur.execute(query, ( inv_name, inv_category, edited_by))
+
+        inv_id=cur.lastrowid
+        cur.execute("UPDATE inventories SET inv_his_id=%s",(inv_id))
+        
+        conn.commit()
+
+        print(" Inventory item added successfully!")
+
+    except Exception as e:
+        print(" Error adding inventory:", e)
+
+def view_all_inventories():
+    #for admins
+    try:    
+        cur.execute("SELECT * FROM inventories WHERE inv_if_active='Yes'")
+        rows = cur.fetchall()
+
+        if rows:
+            headers = [i[0] for i in cur.description]
+            print(tabulate(rows, headers=headers, tablefmt="pretty"))
+        else:
+            print(" No inventory items found.")
+
+    except Exception as e:
+        print(" Error viewing inventories:", e)
+
+
+def search_inventory_by_name():
+    #for docs?
+    try:
+
+        name = input("Enter item name to search: ")
+        cur.execute("SELECT * FROM inventories WHERE inv_name LIKE %s and inv_if_active='Yes'", ('%' + name + '%',))
+        rows = cur.fetchall()
+
+        if rows:
+            headers = [i[0] for i in cur.description]
+            print(tabulate(rows, headers=headers, tablefmt="pretty"))
+        else:
+            print(" No matching items found.")
+
+    except Exception as e:
+        print(" Error searching inventory:", e)
+
+def update_inventory(edited_by):
+    try:
+        cur.execute("SELECT * FROM inventories")
+        data = cur.fetchall()
+        valid_ids = [i[0] for i in data]
+        headers = [i[0] for i in cur.description]
+        print(tabulate(data, headers=headers, tablefmt='pretty'))
+
+        while True:
+            inv_id = int(input("Enter Inventory ID to update: "))
+            if inv_id not in valid_ids:
+                print('not found')
+            else:break
+        
+        cur.execute("SELECT * FROM inventories WHERE inv_id=%s",(inv_id,))
+        old_data=cur.fetchone()
+        new_data=list(old_data[1:-1]) # taking req values (excluding defaults)
+        new_data[-2]+=1 #increasing version
+
+        while True:
+            ch=input("Field to be updated (1.name,2.category,3.both): ")
+            if ch=='1':
+                inv_name = input("New Item Name: ")
+                new_data[1]=inv_name # updating changes
+            elif ch=='2':
+                inv_category = input("New Category: ")
+                new_data[2]=inv_category # updating changes
+            elif ch=='3':
+                inv_name = input("New Item Name: ")
+                inv_category = input("New Category: ")
+                new_data[1],new_data[2]=inv_name,inv_category #updating changes
+            else:
+                print("enter a valid choice")
+                continue
+            break
+        
+        cur.execute("UPDATE inventories SET inv_if_active='No' WHERE inv_id = %s", (inv_id,)) #setting prev as inactive
+
+        cur.execute('''INSERT INTO inventories (inv_his_id,inv_name, inv_category,inv_if_active,version, edited_by)
+                    VALUES (%s,%s,%s,%s,%s,%s)''',
+                    (*new_data,edited_by))
+
+        conn.commit()
+
+        print(" Inventory updated successfully!")
+    except Exception as e:
+        print("Error updating inventory:", e)
+
+def delete_inventory():
+    try:
+        inv_id = int(input("Enter Inventory ID to delete: "))
+        cur.execute("UPDATE inventories SET inv_if_active='No' WHERE inv_id = %s", (inv_id,))
+        conn.commit()
+
+    except Exception as e:
+        print(" Error deleting inventory:", e)
