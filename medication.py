@@ -1,5 +1,6 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
+from datetime import datetime
 
 try:
     conn = connect(
@@ -14,6 +15,7 @@ try:
                 med_id INT AUTO_INCREMENT PRIMARY KEY,
                 med_his_id INT,
                 cons_id INT,
+                adm_id INT,
                 medicine INT,
                 quantity INT,
                 dose VARCHAR(100),
@@ -24,7 +26,8 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (medicine) REFERENCES inventories(inv_id),
-                FOREIGN KEY (cons_id) REFERENCES tbl_consultation(cons_id)
+                FOREIGN KEY (cons_id) REFERENCES tbl_consultation(cons_id),
+                FOREIGN KEY (adm_id) REFERENCES tbl_admission(adm_id)
                 )''')
 except Error as e:
     print(e)
@@ -51,10 +54,9 @@ def add_medication(edited_by):
         cur.execute(query, ( cons_id, medicine, quantity,
             dose, instruction, valid_until,
             edited_by))
-
         med_id=cur.lastrowid
-        cur.execute("UPDATE medication SET med_his_id=%s WHERE med_id=%s",(med_id,med_id))
-        
+        med_his_id = med_id
+        cur.execute("UPDATE medication SET med_his_id=%s WHERE med_id=%s",(med_his_id ,med_id))
         conn.commit()
 
     except Exception as e:
@@ -92,39 +94,68 @@ def search_medication_by_consultation():
         print(" Error searching medication:", e)
 
 def update_medication(edited_by):
-    try:
+    cur.execute("SELECT * FROM medication")
+    data = cur.fetchall()
+    valid_ids = [i[0] for i in data]
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers=headers, tablefmt='pretty'))
 
-        med_id = int(input("Enter Medication ID to update: "))
-        cur.execute("SELECT * FROM medication WHERE med_id=%s",(med_id,))
-        old_data=cur.fetchone()
-        cur.execute("UPDATE medication SET medication_is_active='No' WHERE med_id = %s", (med_id,))
+    while True:
+        try:
+            med_id = int(input("Enter Medication ID to update : "))
+            if med_id in valid_ids:
+                break
+            else:
+                print("Medication not found. Try again.")
+        except ValueError:
+            print("Enter only integers.")
 
-        print("Leave field blank if no change is needed.")
-        dose = input("New Dose: ")
-        instruction = input("New Instruction: ")
-        valid_until = input("New Valid Until (YYYY-MM-DD): ")
+    cur.execute('''SELECT * FROM medication WHERE med_id = %s''', (med_id,))
+    old_data = cur.fetchone()
+    med_his_id = old_data[1]
+    new_version = old_data[10] + 1
+    new_data = list(old_data[5:9])
 
-        new_data=list(old_data[1:-2])
-        new_data[-1]+=1
-        new_data[-5],new_data[-4],new_data[-3]=dose,instruction,valid_until
+    print("Enter value to update.")
+    print("1) Quantity\n2) Dose\n3) Instruction\n4) Valid Until")
+    while True:
+        try:
+            choice = int(input("Enter required value : "))
+            if choice in range(1,5):
+                break
+            else:
+                print("Enter correct value. Try again.")
+        except ValueError:
+            print("Enter only integers.")
+    if choice == 1:
+        while True:
+            try:
+                new_value = int(input("Enter updated value : "))
+                break
+            except ValueError:
+                print("Enter only integers.")
+    elif choice == 4:
+        while True:
+            try:
+                new_value_input = input("Enter date of birth (YYYY-MM-DD) : ")
+                new_value = datetime.strptime(new_value_input, "%Y-%m-%d").date()
+                break
+            except ValueError:
+                print("Invalid date format, use YYYY-MM-DD.")
+    else:
+        new_value = input("Enter updated value : ")
+    new_data[choice-1] = new_value
 
-        query = """
-        INSERT INTO medication (
-            med_his_id, cons_id, medicine, quantity,
-            dose, instruction, valid_until,medication_is_active,
-            version,edited_by
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
+    cur.execute('''UPDATE medication SET medication_is_active = 'No'
+                WHERE med_id = %s''', (med_id,))
 
-        cur.execute(query, ( *new_data, edited_by))
+    cur.execute('''INSERT INTO medication (med_his_id, quantity, dose, instruction, valid_until, version, edited_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+                (med_his_id, *new_data, new_version, edited_by))
 
-        conn.commit()
+    conn.commit()
+    print("Medication updated successfully.")
 
-        print(" Medication updated successfully!")
-
-    except Exception as e:
-        print(" Error updating medication:", e)
 
 def delete_medication():
     try:

@@ -62,7 +62,25 @@ try:
                 ('Medication charges', 'Payment_Category', 'Yes',0),
                 ('Admission charges', 'IP_Payment_Category', 'Yes',0),
                 ('Operation theatre charges', 'IP_Payment_Category', 'Yes',0),
-                ('Procedure charges', 'IP_Payment_Category', 'Yes',0);
+                ('Procedure charges', 'IP_Payment_Category', 'Yes',0),
+                ('Consultant','Designation','Yes',0),
+                ('Surgeon','Designation','Yes',0),
+                ('Doctor','Designation','Yes',0),
+                ('Nurse','Designation','Yes',0),
+                ('Radiographer','Designation','Yes',0),
+                ('Lab technologist','Designation','Yes',0),
+                ('Cashier','Designation','Yes',0),
+                ('Receptionist','Designation','Yes',0),
+                ('Brain surgery','SurgicalProcedure','Yes',0),
+                ('Eye surgery','SurgicalProcedure','Yes',0),
+                ('Ear surgery','SurgicalProcedure','Yes',0),
+                ('Throat surgery','SurgicalProcedure','Yes',0),
+                ('Heart surgery','SurgicalProcedure','Yes',0),
+                ('Abdomen surgery','SurgicalProcedure','Yes',0),
+                ('Kidney surgery','SurgicalProcedure','Yes',0),
+                ('Bone surgery','SurgicalProcedure','Yes',0),
+                ('Angioplasty','SurgicalProcedure','Yes',0),
+                ('Endoscopy','SurgicalProcedure','Yes',0)
                 """)
 except Error as e:
     print(e)

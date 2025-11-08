@@ -18,5 +18,24 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
+    cur.execute('''INSERT INTO inventories (inv_name, inv_category, inv_if_active, version)
+                VALUES
+                ('Paracetamol 200mg', 'Tablet', 'Yes',1),
+                ('Paracetamol 500mg', 'Tablet', 'Yes',1),
+                ('Brufen 200mg', 'Tablet', 'Yes',1),
+                ('Brufen 400mg', 'Tablet', 'Yes',1),
+                ('B complex vitamin', 'Tablet', 'Yes',1),
+                ('Multivitamin', 'Tablet', 'Yes',1),
+                ('B complex', 'Injection', 'Yes',1),
+                ('Voveron Pain inj', 'Injection', 'Yes',1),
+                ('Paracetamol inj', 'Injection', 'Yes',1),
+                ('Voveron Pain inj', 'Injection', 'Yes',1),
+                ('Antibiotic inj', 'Injection', 'Yes',1),
+                ('Penicillin 500mg', 'Tablet', 'Yes',1),
+                ('Azithromycin 250mg', 'Tablet', 'Yes',1),
+                ('Saline infusion', 'IV fluid', 'Yes',1),
+                ('Dextrose infusion', 'IV fluid', 'Yes',1),
+                ('Antibiotic infusion', 'IV fluid', 'Yes',1)
+                ''')
 except Error as e:
     print(e)
