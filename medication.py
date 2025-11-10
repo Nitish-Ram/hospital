@@ -32,7 +32,7 @@ try:
 except Error as e:
     print(e)
 
-def add_medication(edited_by):
+def prescribe_medication(edited_by):
     try:
         #for now
         cons_id = int(input("Enter Consultation ID: "))

@@ -32,7 +32,7 @@ except Error as e:
     print(e)
 
 def view_appointment():
-    cur.execute("""SELECT p.patient_id, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
+    cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
                 FROM appointments a
                 JOIN patients p ON a.patient_id = p.patient_id
                 JOIN staff s ON a.doctor_id = s.staff_id

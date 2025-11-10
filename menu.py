@@ -126,7 +126,7 @@ def main_menu(staff_id, access_level):
                     print("5. Back to Main Menu")
                     ch = input("Enter choice: ").strip()
                     if ch == '1':
-                        add_medication(staff_id)
+                        prescribe_medication(staff_id)
                     elif ch == '2':
                         view_all_medications()
                     elif ch == '3':
