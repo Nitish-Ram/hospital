@@ -55,7 +55,8 @@ def add_inventory(edited_by):
         cur.execute(query, ( inv_name, inv_category, edited_by))
 
         inv_id=cur.lastrowid
-        cur.execute("UPDATE inventories SET inv_his_id=%s",(inv_id))
+        inv_his_id = inv_id
+        cur.execute("UPDATE inventories SET inv_his_id=%s",(inv_his_id))
         
         conn.commit()
 
@@ -113,18 +114,18 @@ def update_inventory(edited_by):
         
         cur.execute("SELECT * FROM inventories WHERE inv_id=%s",(inv_id,))
         old_data=cur.fetchone()
-        new_data=list(old_data[1:-1]) # taking req values (excluding defaults)
-        new_data[-2]+=1 #increasing version
+        new_data=list(old_data[2:-1]) # taking req values (excluding defaults)
+        new_version = new_data[-2] + 1
 
         while True:
-            ch=input("Field to be updated (1.name,2.category,3.both): ")
-            if ch=='1':
+            choice = input("Field to be updated (1.name,2.category,3.both): ")
+            if choice == '1':
                 inv_name = input("New Item Name: ")
                 new_data[1]=inv_name # updating changes
-            elif ch=='2':
+            elif choice == '2':
                 inv_category = input("New Category: ")
                 new_data[2]=inv_category # updating changes
-            elif ch=='3':
+            elif choice=='3':
                 inv_name = input("New Item Name: ")
                 inv_category = input("New Category: ")
                 new_data[1],new_data[2]=inv_name,inv_category #updating changes
@@ -145,10 +146,10 @@ def update_inventory(edited_by):
     except Exception as e:
         print("Error updating inventory:", e)
 
-def delete_inventory():
+def delete_inventory(edited_by):
     try:
         inv_id = int(input("Enter Inventory ID to delete: "))
-        cur.execute("UPDATE inventories SET inv_if_active='No' WHERE inv_id = %s", (inv_id,))
+        cur.execute("UPDATE inventories SET inv_if_active='No' and edited_by = %s WHERE inv_id = %s", (inv_id,edited_by))
         conn.commit()
 
     except Exception as e:

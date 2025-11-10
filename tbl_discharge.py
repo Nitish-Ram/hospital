@@ -21,6 +21,6 @@ try:
                 dis_summary ENUM ('Yes','No') DEFAULT 'No',
                 FOREIGN KEY (adm_id) REFERENCES tbl_admission (adm_id)
                 ''')
-    
+
 except Error as e:
     print(e)

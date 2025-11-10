@@ -30,22 +30,23 @@ try:
 except Error as e:
     print(e)
 
-def book_appointment():
+def book_appointment(edited_by, patient_id):
     print("\n --- Book New Appointment ---")
     try:
-        patient_id = int(input("Enter Patient ID: "))
         doctor_id = int(input("Enter Doctor ID: "))
         clinic = int(input("Enter Clinic ID (from lookup_code): "))
         appt_date = input("Enter Appointment Date (YYYY-MM-DD): ")
-
-
         query = """
         INSERT INTO appointments
         (appt_his_id, patient_id, doctor_id, clinic, appt_book_time)
         VALUES (%s, %s, %s, %s, %s)
         """
-        cur.execute(query, (0, patient_id, doctor_id, clinic, appt_date))
-        conn.commit()
+        cur.execute(query, (patient_id, doctor_id, clinic, appt_date))
+        appt_id = cur.lastrowid
+        appt_his_id = appt_id
+        cur.execute ('''UPDATE appointments SET appt_his_id = %s
+                     WHERE appt_id = %s''', (appt_his_id, appt_id))
+        conn.commit
         print("Appointment booked successfully.")
     except ValueError:
         print(" Invalid input type. Please enter numbers where required.")

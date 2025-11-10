@@ -49,6 +49,7 @@ try:
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
                 #patient_status ENUM('Active','Inactive','Deceased') DEFAULT 'Active'
+                #access_level = {'admin' : 9, 'consultant' : 8, 'surgeon' : 8, 'doctor' : 7, 'pharmacist' : 6, 'nurse' : 5, 'radiographer' : 5}
 except Error as e:
     print(e)
 
