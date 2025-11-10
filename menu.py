@@ -65,7 +65,7 @@ def main_menu(staff_id, access_level):
         choice = input("\nEnter choice: ").strip()
 
         #for admin
-        if access_level >= 9:
+        '''if access_level >= 9:
             if choice == '1':
                 create_staff(staff_id)
                 update_staff(staff_id)
@@ -127,7 +127,7 @@ def main_menu(staff_id, access_level):
                 print("Logging out...")
                 break
             else:
-                print("Invalid choice.")
+                print("Invalid choice.")'''
 
 def main():
     staff_id, access_level = staff_login()
