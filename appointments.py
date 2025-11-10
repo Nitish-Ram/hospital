@@ -1,5 +1,6 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
+from datetime import datetime
 
 try:
     conn = connect(
@@ -15,10 +16,10 @@ try:
                 patient_id INT,
                 doctor_id INT,
                 clinic INT,
-                appt_book_time DATE,
+                appt_book_time DATETIME,
                 cons_fee_paid ENUM('Yes','No') DEFAULT 'No',
-                cons_payment_receiptno INT,
-                cons_paid_amount INT,
+                cons_payment_receiptno INT AUTO_INCREMENT,
+                cons_paid_amount VARCHAR(100),
                 appt_is_active ENUM('Yes','No') DEFAULT 'Yes',
                 version INT DEFAULT 0,
                 edited_by INT NULL,
@@ -31,140 +32,167 @@ except Error as e:
     print(e)
 
 def book_appointment(edited_by, patient_id):
-    print("\n --- Book New Appointment ---")
-    try:
-        doctor_id = int(input("Enter Doctor ID: "))
-        clinic = int(input("Enter Clinic ID (from lookup_code): "))
-        appt_date = input("Enter Appointment Date (YYYY-MM-DD): ")
-        query = """
-        INSERT INTO appointments
-        (appt_his_id, patient_id, doctor_id, clinic, appt_book_time)
-        VALUES (%s, %s, %s, %s, %s)
-        """
-        cur.execute(query, (patient_id, doctor_id, clinic, appt_date))
-        appt_id = cur.lastrowid
-        appt_his_id = appt_id
-        cur.execute ('''UPDATE appointments SET appt_his_id = %s
-                     WHERE appt_id = %s''', (appt_his_id, appt_id))
-        conn.commit
-        print("Appointment booked successfully.")
-    except ValueError:
-        print(" Invalid input type. Please enter numbers where required.")
-    except Error as e:
-        print(f"  Error booking appointment: {e}")
+    cur.execute("""SELECT item_id, item_name from lookup_code
+                WHERE category = 'Clinic' and item_if_active = 'Yes'""")
+    clinics = cur.fetchall()
+    print("Available clinics")
+    for i in clinics:
+        print(f"{i[0]} . {i[1]}")
 
-def get_appointment():
-    print("\n --- Get Appointment Details ---")
-    try:
-        appt_id = int(input("Enter Appointment ID: "))
+    while True:
+        try:
+            clinic_id = int(input("Enter clinic ID : "))
+            if clinic_id in [i[0] for i in clinics]:
+                break
+            else:
+                print("Couldn't find clinic. Try again.")
+        except ValueError:
+            print("Enter only integers.")
 
-        cur.execute("SELECT * FROM appointments WHERE appt_id = %s", (appt_id,))
-        result = cur.fetchone()
+    cur.execute('''SELECT staff_id, staff_name FROM staff
+                WHERE designation = 'Doctor' and department = %s''', (clinic_id,))
+    doctors = cur.fetchall()
+    print("\nAvailable doctors")
+    for i in doctors:
+        print(f"{i[0]} . {i[1]}")
 
-        if result:
-            print("\n Appointment Details:")
-            header=[i for i in cur.description]
-            print(tabulate(result,headers=header,tablefmt='pretty'))
+    while True:
+        try:
+            doctor_id = int(input("Enter doctor ID : "))
+            if doctor_id in [i[0] for i in doctors]:
+                break
+            else:
+                print("Couldn't find doctors. Try again.")
+        except ValueError:
+            print("Enter only integers.")
             
+    while True:
+        try:
+            date_input = input("Enter date (YYYY-MM-DD) and time (HH:MM:SS) : ")
+            appt_book_time = datetime.strptime(date_input, "%Y-%m-%d %H:%M:%S")
+            break
+        except ValueError:
+            print("Invalid date and time format. Try again.")
+
+    while True:
+        cons_fee_paid = input("Enter if fees were paid (Yes/No) : ").lower()
+        if cons_fee_paid in ('yes', 'no'):
+            break
         else:
-            print(" Appointment not found.")
+            print("Enter valid option.")
 
-    except ValueError:
-        print(" Invalid input type.")
-    except Error as e:
-        print(f" Error fetching appointment: {e}")
+    while True:
+        try:
+            cons_fee_amount = float(input("Enter paid amount : "))
+            break
+        except ValueError:
+            print("Enter only numbers.")
 
-def get_patient_appointments():
+    cur.execute('''INSERT INTO appointments (
+                patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_fee_amount, edited_by) 
+                VALUES (%s, %s, %s, %s, %s, %s)''',
+                (patient_id, doctor_id, clinic_id, appt_book_time, cons_fee_paid.capitalize(), cons_fee_amount, edited_by))
+    appt_his_id = cur.lastrowid
+    cur.execute('''UPDATE appointments SET appt_his_id = %s WHERE appt_id = %s''', (appt_his_id, appt_his_id))
 
-    print("\n --- View Patient Appointments ---")
-    try:
-        patient_id = int(input("Enter Patient ID: "))
+def update_appointment(edited_by, patient_id):
+    cur.execute("""SELECT appt_id, appt_book_time, clinic FROM appointments
+                WHERE patient_id = %s and appt_if_active = 'Yes'""", (patient_id,))
+    data = cur.fetchall()
+    header = [i[0] for i in cur.description]
+    if not data:
+        print("Couldn't find any active appointments.")
+    else:
+        print(tabulate(data, headers = header, tablefmt = 'pretty'))
+        for i in data:
+            print(f"{i[0]} . {i[1]}")
 
-        cur.execute(
-            "SELECT * FROM appointments WHERE patient_id = %s ORDER BY appt_book_time DESC",
-            (patient_id,)
-        )
-        results = cur.fetchall()
+    while True:
+        try:
+            appt_id = int(input("Enter appointment ID to update : "))
+            if appt_id in [i[0] for i in data]:
+                break
+            else:
+                print("Enter a valid appointment ID.")
+        except ValueError:
+            print("Enter only integers.")
+    cur.execute('''SELECT appt_his_id, patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_paid_amount, version
+                FROM appointments where appt_id = %s''', (appt_id,))
+    old_data = list(cur.fetchone())
 
-        if results:
-            header=[i for i in cur.description]
-            print(f"\n Appointments for Patient ID {patient_id}:")
-            print(tabulate(results,headers=header,tablefmt='pretty'))
-            
+    while True:
+        ch = input("1) Change doctor \n2) Change booked time\n3) Change paid amount\nEnter choice : ")
+        if ch not in '123':
+            print("Enter only 1,2 or 3")
         else:
-            print(" No appointments found.")
+            break
 
-    except ValueError:
-        print(" Invalid Patient ID.")
-    except Error as e:
-        print(f" Error fetching appointments: {e}")
+    if ch == 1:
+        clinic_id = [i[2] for i in data if i[0] == appt_id][0]
+        cur.execute("SELECT item_name FROM lookup_code WHERE item_id = %s", (clinic_id,))
+        clinic_name = cur.fetchone()[0]
 
-def update_appointment_status():
-    print("\n --- Update Appointment Status ---")
-    try:
-        appt_id = int(input("Enter Appointment ID: "))
-        status = input("Set status to 'Yes' (active) or 'No' (inactive): ").capitalize()
+        cur.execute('''SELECT staff_id, staff_name from staff
+                    WHERE designation = 'Doctor' and department = %s''', (clinic_name,))
+        doctors = cur.fetchall()
+        print("Available doctors.")
+        for i in doctors:
+            print(f"{i[0]} . {i[1]}")
 
-        if status not in ("Yes", "No"):
-            print(" Invalid status. Use Yes/No only.")
-            return
+        while True:
+            try:
+                new_doctor = int(input("Enter new doctor ID : "))
+                if new_doctor in [i[0] for i in doctors]:
+                    break
+                else:
+                    print("Enter valid doctor ID.")
+            except ValueError:
+                print("Enter only integers.")
+        old_data[2] = new_doctor
+        old_data[-1] += 1
 
-        cur.execute(
-            "UPDATE appointments SET appt_is_active = %s, edited_on = NOW() WHERE appt_id = %s",
-            (status, appt_id)
-        )
-        conn.commit()
-        print(" Appointment status updated successfully.")
-    except ValueError:
-        print(" Invalid ID.")
-    except Error as e:
-        print(f" Error updating appointment: {e}")
+    elif ch == 2:
+        while True:
+            try:
+                date_input = input("Enter new date (YY-MM-DD) and time (HH:MM:SS) : ")
+                new_cons_date = datetime.strptime(date_input, "%Y-%m-%d %H:%M:%S")
+                break
+            except ValueError:
+                print("Invalid date and time format. Try again.")
+        old_data[4] = new_cons_date
+        old_data[-1] += 1
+    
+    elif ch == 3:
+        new_paid_amount = input("Enter new amount : ")
+        old_data[-2] = new_paid_amount
+        old_data[-1] += 1
 
-def cancel_appointment():
+    cur.execute('''UPDATE appointments SET appt_if_active = 'No'
+                WHERE appt_id = %s''', (appt_id,))
+    cur.execute('''INSERT into appointments (
+                appt_his_id, patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_paid_amount, version, edited_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''',(*old_data, edited_by))
+    
+def delete_appointment(edited_by):
+    cur.execute("""SELECT appt_id, appt_book_time, clinic FROM appointments
+                WHERE patient_id = %s and appt_if_active = 'Yes'""")
+    data = cur.fetchall()
+    header = [i[0] for i in cur.description]
+    if not data:
+        print("Couldn't find any active appointments.")
+    else:
+        print(tabulate(data, headers = header, tablefmt = 'pretty'))
+        for i in data:
+            print(f"{i[0]} . {i[1]}")
 
-    print("\n --- Cancel Appointment ---")
-    try:
-        appt_id = int(input("Enter Appointment ID to cancel: "))
-
-        cur.execute(
-            "UPDATE appointments SET appt_is_active = 'No', edited_on = NOW() WHERE appt_id = %s",
-            (appt_id,)
-        )
-        conn.commit()
-        print(f" Appointment {appt_id} cancelled successfully.")
-    except ValueError:
-        print(" Invalid Appointment ID.")
-    except Error as e:
-        print(f" Error cancelling appointment: {e}")
-
-def list_doctor_schedule():
-
-    print("\n --- Doctor Schedule ---")
-    try:
-        doctor_id = int(input("Enter Doctor ID: "))
-        date_filter = input("Enter Date (YYYY-MM-DD) or leave blank for all: ")
-
-
-        if date_filter.strip():
-            cur.execute(
-                "SELECT * FROM appointments WHERE doctor_id = %s AND appt_book_time = %s ORDER BY appt_book_time",
-                (doctor_id, date_filter)
-            )
-        else:
-            cur.execute(
-                "SELECT * FROM appointments WHERE doctor_id = %s ORDER BY appt_book_time DESC",
-                (doctor_id,)
-            )
-
-        results = cur.fetchall()
-        if results:
-            header=[i for i in cur.description]
-            print(f"\n Schedule for Doctor ID {doctor_id}:")
-            print(tabulate(results,headers=header,tablefmt='pretty'))
-                
-        else:
-            print(" No appointments found.")
-    except ValueError:
-        print(" Invalid Doctor ID.")
-    except Error as e:
-        print(f" Error fetching doctor schedule: {e}")
+    while True:
+        try:
+            appt_id = int(input("Enter appointment ID to update : "))
+            if appt_id in [i[0] for i in data]:
+                break
+            else:
+                print("Enter a valid appointment ID.")
+        except ValueError:
+            print("Enter only integers.")
+    cur.execute('''UPDATE appointments SET appt_if_active = 'No', edited_by = %s
+                WHERE appt_id = %s''', (edited_by, appt_id))
