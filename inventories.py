@@ -114,8 +114,8 @@ def update_inventory(edited_by):
         
         cur.execute("SELECT * FROM inventories WHERE inv_id=%s",(inv_id,))
         old_data=cur.fetchone()
-        new_data=list(old_data[2:-1]) # taking req values (excluding defaults)
-        new_version = new_data[-2] + 1
+        new_data=list(old_data[1:-2]) # taking req values (excluding defaults)
+        new_data[-1] += 1
 
         while True:
             choice = input("Field to be updated (1.name,2.category,3.both): ")
