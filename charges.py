@@ -36,7 +36,6 @@ except Error as e:
 
 def add_charge(edited_by):
     try:
-        #take these vals from somewhere i js inputted
         cons_id = input("Enter Consultation ID : ")
         adm_id = input("Enter Admission ID : ") 
         payment_category = input("Enter Payment Category : ")
@@ -69,7 +68,6 @@ def add_charge(edited_by):
 
 def view_charges():
     try:
-
         query = """
         SELECT 
             c.charge_id AS ID,

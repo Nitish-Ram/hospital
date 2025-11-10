@@ -77,22 +77,6 @@ def view_all_medications():
     except Exception as e:
         print(" Error viewing medications:", e)
 
-def search_medication_by_consultation():
-    try:
-
-        cons_id = int(input("Enter Consultation ID to search medications: "))
-        cur.execute("SELECT * FROM medication WHERE cons_id = %s AND medication_is_active='Yes'", (cons_id,))
-        rows = cur.fetchall()
-
-        if rows:
-            headers = [i[0] for i in cur.description]
-            print(tabulate(rows, headers=headers, tablefmt="pretty"))
-        else:
-            print("No medications found for this consultation.")
-
-    except Exception as e:
-        print(" Error searching medication:", e)
-
 def update_medication(edited_by):
     cur.execute("SELECT * FROM medication")
     data = cur.fetchall()
