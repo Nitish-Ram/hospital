@@ -57,7 +57,7 @@ def add_consultation(edited_by, cpr_no):
                 FROM appointments a
                 JOIN patients p ON a.patient_id = p.patient_id
                 JOIN staff s ON a.doctor_id = s.staff_id
-                WHERE a.appt_is_active = 'Yes'""")
+                WHERE a.appt_is_active = 'Yes' AND p.cpr_no = %s""", (cpr_no,))
     data = cur.fetchall()
     headers = [i[0] for i in cur.description]
     print(tabulate(data, headers=headers, tablefmt='pretty'))
