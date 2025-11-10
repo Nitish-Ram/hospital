@@ -74,13 +74,16 @@ def view_tests():
                 SELECT test_id, cons_id, test_name, fees_paid, paid_amt, payment_date,receipt_no, test_result
                 FROM tests WHERE test_is_active='Yes' ORDER BY payment_date DESC
                 ''')
-
-            rows = cur.fetchall()
-            header=[i[0] for i in cur.description]
-            if rows:
-                print(tabulate(rows, headers=header, tablefmt="pretty"))
             else:
-                print("No test records found.")
+                print("invalid choice")
+                continue
+            break
+        rows = cur.fetchall()
+        header=[i[0] for i in cur.description]
+        if rows:
+            print(tabulate(rows, headers=header, tablefmt="pretty"))
+        else:
+            print("No test records found.")
 
     except Error as e:
         print(f" Database Error: {e}")
