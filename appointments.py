@@ -31,6 +31,16 @@ try:
 except Error as e:
     print(e)
 
+def view_appointment():
+    cur.execute("""SELECT p.patient_id, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON a.doctor_id = s.staff_id
+                WHERE a.appt_is_active = 'Yes'""")
+    data = cur.fetchall()
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers = headers, tablefmt= 'pretty'))
+
 def book_appointment(edited_by, patient_id):
     cur.execute("""SELECT item_id, item_name from lookup_code
                 WHERE category = 'Clinic' and item_if_active = 'Yes'""")

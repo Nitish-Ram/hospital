@@ -1,6 +1,7 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
 from datetime import datetime
+from medication import prescribe_medication
 
 try:
     conn = connect(
@@ -41,7 +42,7 @@ try:
                 diagnosis VARCHAR(500),
                 discharged ENUM('Yes','No') DEFAULT 'No',
                 medication ENUM('Yes','No') DEFAULT 'No',
-                followup ENUM('Yes','No') DEFAULT 'No'
+                followup ENUM('Yes','No') DEFAULT 'No',
                 admission_to_ward ENUM('Yes','No') DEFAULT 'No'),
                 version INT DEFAULT 0,
                 edited_by INT,
@@ -51,62 +52,85 @@ try:
 except Error as e:
     print(e)
 
-def add_consultation(edited_by):
-    try:
-        appt_id = int(input("Enter Appointment ID: "))
+def add_consultation(edited_by, cpr_no):
+    cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON a.doctor_id = s.staff_id
+                WHERE a.appt_is_active = 'Yes'""")
+    data = cur.fetchall()
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers=headers, tablefmt='pretty'))
 
-        while True:
-            try:
-                date_input = input("Enter date (YY-MM-DD) and time (HH:MM:SS) : ")
-                cons_date = datetime.strptime(date_input, "%Y-%m-%d %H:%M:%S")
-                break
-            except ValueError:
-                print("Invalid date and time format. Try again.")
-        complaints = input("Enter Patient Complaints: ")
-        diagnosis = input("Enter Diagnosis: ")
-        cons_notes = input("Enter Consultation Notes: ")
-
-        #yes/no questions
-
-        diagnostic_q = ["Lab test required?", 
-                        "Imaging test required?",
-                        "Medication prescribed?"]
-        diagnostic_a = []
-        for i in diagnostic_q:
-            while True:
-                answer = input(f"{i} (Yes/No) : ").lower().strip()
-                if answer in ('yes','no'):
-                    diagnostic_a.append(answer)
-                    break
-                else:
-                    print("Enter only yes or no.")
-        lab_test = diagnostic_a[0]
-        imaging_test = diagnostic_a[1]
-        #needs to come back for the second time (second table to be activated)
-        medication = diagnostic_a[2]
-        
-        while True:
-            discharged = input("Patient discharged? (Yes/No)").strip().lower()
-            if discharged in ('yes','no'):
+    appt_valid_ids = [i[0] for i in data]
+    while True:
+        try:
+            appt_id = int(input("Enter appointment ID : "))
+            if appt_id in appt_valid_ids:
                 break
             else:
-                print("Enter only yes or no.")
-        
-        admission_to_ward = input("Admit to Ward? (Yes/No): ")
-        #tbl_admission
+                print("Enter valid ID.")
+        except ValueError:
+            print("Enter only integers.")
 
-    except Exception as e:
-        print(" Error adding consultation:", e)
+    selected_appt = [i for i in data if i[0] == appt_id][0]
+    doctor_id = selected_appt[4]
+    clinic = selected_appt[5]
 
-def search_consultation():
-    try:
-        cons_id = int(input("Enter Consultation ID to search: "))
-        cur.execute("SELECT * FROM tbl_consultation WHERE cons_id = %s", (cons_id,))
-        row = cur.fetchone()
-        if row:
-            headers = [i[0] for i in cur.description]
-            print(tabulate([row], headers=headers, tablefmt="pretty"))
-        else:
-            print(" Consultation not found.") 
-    except Exception as e:
-        print(" Error searching consultation:", e)
+    complaints = input("Enter patient's complaints : ")
+    cons_notes = input("Enter notes from consultation : ")
+
+    while True:
+        imaging_test = input("Are you sending for imaging test (Yes/No) : ").lower()
+        if imaging_test in ('yes','no'):
+            break
+        print("Enter only yes or no.")
+
+    while True:
+        lab_test = input("Are you sending for lab test? (Yes/No) : ").lower()
+        if lab_test in ('yes','no'):
+            break
+        print("Enter only yes or no.")
+
+    while True:
+        discharged = input("Do you want to discharge? (Yes/No) : ").lower()
+        if discharged in ('yes','no'):
+            break
+        print("Enter only yes or no.")
+
+    discharge_flag = False
+    if discharged == 'yes' and (imaging_test == 'yes' or lab_test == 'yes'):
+        while True:
+            confirm = input("You ordered tests. Do you still want to discharge? (Yes/No) : ").lower()
+            if confirm in ('yes','no'):
+                break
+        discharge_flag = confirm == 'yes'
+    else:
+        discharge_flag = discharged == 'yes'
+
+    while True:
+        medication = input("Do you want to prescribe medication (Yes/No) : ").lower()
+        if medication in ('yes','no'):
+            break
+        print("Enter only yes or no.")
+
+    cur.execute('''INSERT INTO tbl_consultation 
+                   (appt_id, doctor_id, clinic, complaints, cons_notes, lab_test, imaging_test, discharged, medication, edited_by)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
+                (appt_id, doctor_id, clinic, complaints, cons_notes, lab_test.capitalize(), imaging_test.capitalize(),
+                 'Yes' if discharge_flag else 'No', medication.capitalize(), edited_by))
+
+    cons_id = cur.lastrowid
+
+    if discharge_flag:
+        cur.execute('''UPDATE appointments 
+                       SET appt_if_active = 'No', edited_by = %s 
+                       WHERE appt_id = %s''', (edited_by, appt_id))
+        if medication == 'yes':
+            prescribe_medication(edited_by)
+    else:
+        cur.execute('''INSERT INTO tbl_consultationF 
+                       (cons_id, discharged, medication, edited_by)
+                       VALUES (%s, 'No', %s, %s)''',
+                    (cons_id, medication.capitalize(), edited_by))
+        print("Follow-up record created in tbl_consultationF.")
