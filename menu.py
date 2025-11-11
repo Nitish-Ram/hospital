@@ -1,5 +1,6 @@
 from mysql.connector import connect, Error
 from getpass import getpass
+import sys
 
 # import application modules
 from lookup_code import *
@@ -16,18 +17,18 @@ from charges import *
 from summary import *
 
 
-def get_db_cursor():
-    try:
-        conn = connect(
-            host='localhost', user='root', password='Fawaz@33448113', database='hospital'
-        )
-        return conn, conn.cursor()
-    except Error as e:
-        print("DB connection error:", e)
-        return None, None
 
+try:
+    conn = connect(
+        host='localhost', user='root', password='Fawaz@33448113', database='hospital'
+    )
 
-conn, cur = get_db_cursor()
+    
+    cur = conn.cursor()
+except Error as e:
+    print("DB connection error:", e)
+    sys.exit(1)
+
 
 
 def staff_login():
@@ -264,7 +265,5 @@ def main():
     else:
         print('Limited menu: view appointments and personal info')
 
-
 if __name__ == '__main__':
     main()
- 

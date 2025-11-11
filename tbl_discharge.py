@@ -184,7 +184,7 @@ def add_discharge_medication(edited_by):
 def generate_discharge_summary(edited_by=None):
     """Generate discharge summary report"""
     try:
-        print("\n--- Discharge Summary Report ---")
+        print(" Discharge Summary Report")
         
         # Get date range
         start_date = input("Enter start date (YYYY-MM-DD): ")

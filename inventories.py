@@ -19,6 +19,8 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
+    #first run to populate initial data
+    """   
     cur.execute('''INSERT INTO inventories (inv_name, inv_category, inv_if_active, version)
                 VALUES
                 ('Paracetamol 200mg', 'Tablet', 'Yes',1),
@@ -38,6 +40,7 @@ try:
                 ('Dextrose infusion', 'IV fluid', 'Yes',1),
                 ('Antibiotic infusion', 'IV fluid', 'Yes',1)
                 ''')
+            """  
 except Error as e:
     print(e)
 
