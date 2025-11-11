@@ -149,8 +149,9 @@ def update_inventory(edited_by):
 def delete_inventory(edited_by):
     try:
         inv_id = int(input("Enter Inventory ID to delete: "))
-        cur.execute("UPDATE inventories SET inv_if_active='No' and edited_by = %s WHERE inv_id = %s", (inv_id,edited_by))
+        cur.execute("UPDATE inventories SET inv_if_active='No', edited_by = %s WHERE inv_id = %s", (edited_by, inv_id))
         conn.commit()
+        print("Inventory item deleted successfully.")
 
     except Exception as e:
         print(" Error deleting inventory:", e)
