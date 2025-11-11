@@ -192,9 +192,9 @@ def manage_followup(edited_by, cpr_no):
     if medication == 'yes':
         prescribe_medication(edited_by)
 
-    cur.execute('''INSERT INTO tbl_consultationF (
-                cons_id, lab_result, imaging_result, diagnosis, discharged, medication, admission_to_ward, edited_by) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)''', 
+    cur.execute('''UPDATE tbl_consultationF SET lab_result = %s, imaging_result= %s, diagnosis = %s,
+                diagnosis = %s, discharged = %s, medication = %s, admission_to_ward = %s, edited_by = %s
+                WHERE cons_id = %s''', 
                 (cons_id, lab_result, imaging_result, diagnosis, 'Yes' if discharged.lower() == 'yes' else 'No', 
                  medication.capitalize(), admission_to_ward.capitalize(), edited_by))
     consF_id = cur.lastrowid
