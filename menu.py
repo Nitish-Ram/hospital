@@ -1,5 +1,7 @@
 from mysql.connector import connect, Error
-#user defined
+from getpass import getpass
+
+# import application modules
 from lookup_code import *
 from user_creation import *
 from inventories import *
@@ -11,201 +13,258 @@ from medication import *
 from tests import *
 from tbl_discharge import *
 from charges import *
+from summary import *
 
-conn = connect(
-        host = 'localhost',
-        user = 'root',
-        password = 'Fawaz@33448113',
-        database = 'hospital'
-)
-cur = conn.cursor()
+
+def get_db_cursor():
+    try:
+        conn = connect(
+            host='localhost', user='root', password='Fawaz@33448113', database='hospital'
+        )
+        return conn, conn.cursor()
+    except Error as e:
+        print("DB connection error:", e)
+        return None, None
+
+
+conn, cur = get_db_cursor()
+
 
 def staff_login():
-    print('--Staff Login--')
-
     while True:
-        user_name = input("Enter username : ")
-        cur.execute('''SELECT staff_id, passcode, access_level from staff WHERE user_name = %s''', (user_name,))
-        data = cur.fetchone()
-
-        if not data:
-            print("Username not found. Try again.")
-            continue
-
-        staff_id, passcode, access_level = data
-        input_passcode = input("Enter passcode : ")
-        if passcode == input_passcode:
-            print(f"Login successful. Welcome {user_name}\n Redirecting...")
-            return staff_id, access_level
-        else:
-            print("Incorrect password. Try again.")
-
-def main_menu(staff_id, access_level):
-    if access_level >= 9:
-        while True:
-            print("\n--Admin Menu--")
-            print("1. Manage Staff")
-            print("2. Manage Lookup Codes")
-            print("3. Manage Inventory")
-            print("4. Manage Medications")
-            print("5. Manage Patients")
-            print("6. Manage Appointments")
-            print("7. Manage Consultations")
-            print("8. Generate Reports")
-            print("9. Logout")
-
-            choice = input("Enter choice: ").strip()
-
-            if choice == '1':
-                while True:
-                    print("\n--Staff Management--")
-                    print("1. Create Staff")
-                    print("2. Update Staff")
-                    print("3. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    if ch == '1':
-                        create_staff(staff_id)
-                    elif ch == '2':
-                        update_staff(staff_id)
-                    elif ch == '3':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '2':
-                while True:
-                    print("\n--Lookup Code Management--")
-                    print("1. Add Item")
-                    print("2. Update Item")
-                    print("3. Remove Item")
-                    print("4. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    if ch == '1':
-                        add_items_lookup_code(staff_id)
-                    elif ch == '2':
-                        update_items_lookup_code(staff_id)
-                    elif ch == '3':
-                        remove_items_lookup_code(staff_id)
-                    elif ch == '4':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '3':
-                while True:
-                    print("\n--Inventory Management--")
-                    print("1. View All Inventory")
-                    print("2. Add Inventory")
-                    print("3. Search Inventory")
-                    print("4. Update Inventory")
-                    print("5. Delete Inventory")
-                    print("6. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    if ch == '1':
-                        view_all_inventories(staff_id)
-                    elif ch == '2':
-                        add_inventory(staff_id)
-                    elif ch == '3':
-                        search_inventory_by_name()
-                    elif ch == '4':
-                        update_inventory(staff_id)
-                    elif ch == '5':
-                        delete_inventory(staff_id)
-                    elif ch == '6':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '4':
-                while True:
-                    print("\n--Medication Management--")
-                    print("1. Add Medication")
-                    print("2. View All Medications")
-                    print("3. Update Medication")
-                    print("4. Delete Medication")
-                    print("5. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    if ch == '1':
-                        prescribe_medication(staff_id)
-                    elif ch == '2':
-                        view_all_medications()
-                    elif ch == '3':
-                        update_medication(staff_id)
-                    elif ch == '4':
-                        delete_medication(staff_id)
-                    elif ch == '5':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '5':
-                while True:
-                    print("\n--Patient Management--")
-                    print("1. Create Patient")
-                    print("2. Update Patient")
-                    print("3. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    if ch == '1':
-                        create_patient(staff_id)
-                    elif ch == '2':
-                        update_patient(staff_id)
-                    elif ch == '3':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '6':
-                while True:
-                    print("\n--Appointment Management--")
-                    print("1. Book Appointment")
-                    print("2. View Appointment")
-                    print("3. Update Appointment")
-                    print("4. Cancel Appointment")
-                    print("5. List Doctor Schedule")
-                    print("6. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    '''if ch == '1':
-                        book_appointment(staff_id)
-                    elif ch == '2':
-                        get_appointment()
-                        get_patient_appointments()
-                    elif ch == '3':
-                        update_appointment_status(staff_id)
-                    elif ch == '4':
-                        cancel_appointment(staff_id)
-                    elif ch == '5':
-                        list_doctor_schedule()
-                    elif ch == '6':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '7':
-                while True:
-                    print("\n--- Consultation Management ---")
-                    print("1. Add Consultation")
-                    print("2. Search Consultation")
-                    print("3. Back to Main Menu")
-                    ch = input("Enter choice: ").strip()
-                    if ch == '1':
-                        add_consultation(staff_id)
-                    elif ch == '2':
-                        search_consultation()
-                    elif ch == '3':
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-
-            elif choice == '8':
-                generate_reports()
-
-            elif choice == '9':
-                print("Logging out...")
-                break
-
+        user_name = input("Username: ").strip()
+        passcode = getpass("Passcode: ")
+        try:
+            cur.execute('SELECT staff_id, passcode, access_level FROM staff WHERE user_name=%s', (user_name,))
+            row = cur.fetchone()
+            if not row:
+                print("User not found.")
+                continue
+            staff_id, real_pass, access_level = row
+            if real_pass == passcode:
+                print(f"Welcome {user_name}!")
+                return staff_id, access_level
             else:
-                print("Invalid choice. Try again.")
+                print("Incorrect passcode.")
+        except Exception as e:
+            print("Login error:", e)
+
+
+def prompt_int(msg):
+    while True:
+        try:
+            return int(input(msg))
+        except ValueError:
+            print("Enter a valid integer.")
+
+
+def admin_menu(staff_id):
+    while True:
+        print('\n-- Admin Menu --')
+        print('1. Staff management')
+        print('2. Lookup codes')
+        print('3. Inventory')
+        print('4. Medication')
+        print('5. Patients')
+        print('6. Appointments')
+        print('7. Consultations')
+        print('8. Admissions')
+        print('9. Procedures')
+        print('10. Tests')
+        print('11. Discharge')
+        print('12. Charges')
+        print('13. Reports')
+        print('0. Logout')
+        ch = input('Choice: ').strip()
+        if ch == '1':
+            print('\n1) Create Staff  2) Update Staff')
+            c = input('> ').strip()
+            if c == '1':
+                create_staff(staff_id)
+            elif c == '2':
+                update_staff(staff_id)
+        elif ch == '2':
+            print('\n1) Add 2) Update 3) Remove 4) View by category')
+            c = input('> ').strip()
+            if c == '1':
+                add_items_lookup_code(staff_id)
+            elif c == '2':
+                update_items_lookup_code(staff_id)
+            elif c == '3':
+                remove_items_lookup_code(staff_id)
+            elif c == '4':
+                cat = input('Enter category: ')
+                cur.execute('SELECT item_id, item_name FROM lookup_code WHERE item_category=%s AND item_if_active="Yes"', (cat,))
+                rows = cur.fetchall()
+                if rows:
+                    print('\n'.join(f"{r[0]}. {r[1]}" for r in rows))
+                else:
+                    print('No items found')
+        elif ch == '3':
+            print('\n1) View all 2) Add 3) Search 4) Update 5) Delete')
+            c = input('> ').strip()
+            if c == '1':
+                view_all_inventories()
+            elif c == '2':
+                add_inventory(staff_id)
+            elif c == '3':
+                search_inventory_by_name()
+            elif c == '4':
+                update_inventory(staff_id)
+            elif c == '5':
+                delete_inventory(staff_id)
+        elif ch == '4':
+            print('\n1) Prescribe 2) View all 3) Update 4) Delete')
+            c = input('> ').strip()
+            if c == '1':
+                prescribe_medication(staff_id)
+            elif c == '2':
+                view_all_medications()
+            elif c == '3':
+                update_medication(staff_id)
+            elif c == '4':
+                delete_medication()
+        elif ch == '5':
+            print('\n1) Create patient 2) Update patient 3) View admissions for patient')
+            c = input('> ').strip()
+            if c == '1':
+                create_patient(staff_id)
+            elif c == '2':
+                update_patient(staff_id)
+            elif c == '3':
+                pid = prompt_int('Enter patient ID: ')
+                get_patient_admissions(pid)
+        elif ch == '6':
+            print('\n1) Book 2) View all 3) Update 4) Cancel')
+            c = input('> ').strip()
+            if c == '1':
+                pid = prompt_int('Enter patient ID: ')
+                book_appointment(staff_id, pid)
+            elif c == '2':
+                view_appointment()
+            elif c == '3':
+                pid = prompt_int('Enter patient ID: ')
+                update_appointment(staff_id, pid)
+            elif c == '4':
+                delete_appointment(staff_id)
+        elif ch == '7':
+            print('\n1) Add consultation 2) Manage follow-up 3) View consultations')
+            c = input('> ').strip()
+            if c == '1':
+                cpr = input('Enter patient CPR: ')
+                add_consultation(staff_id, cpr)
+            elif c == '2':
+                cpr = input('Enter patient CPR: ')
+                manage_followup(staff_id, cpr)
+            elif c == '3':
+                print('Use SQL or custom viewer in tbl_consultation module.')
+        elif ch == '8':
+            print('\n1) Admit patient 2) View admissions 3) Update admission 4) Patient admissions')
+            c = input('> ').strip()
+            if c == '1':
+                add_admission(staff_id)
+            elif c == '2':
+                view_admissions()
+            elif c == '3':
+                update_admission(staff_id)
+            elif c == '4':
+                pid = prompt_int('Enter patient ID: ')
+                get_patient_admissions(pid)
+        elif ch == '9':
+            print('\n1) Add procedure 2) View procedures')
+            c = input('> ').strip()
+            if c == '1':
+                adm = input('Enter admission ID (or leave blank to list admissions): ')
+                add_inpatient_procedure(staff_id, int(adm) if adm else None)
+            elif c == '2':
+                view_procedures()
+        elif ch == '10':
+            print('\n1) Add test 2) View tests 3) Update test 4) Delete test')
+            c = input('> ').strip()
+            if c == '1':
+                add_test(staff_id)
+            elif c == '2':
+                view_tests()
+            elif c == '3':
+                update_test(staff_id)
+            elif c == '4':
+                delete_test()
+        elif ch == '11':
+            print('\n1) Record discharge 2) Add discharge medication 3) Generate discharge summary')
+            c = input('> ').strip()
+            if c == '1':
+                record_discharge(staff_id)
+            elif c == '2':
+                add_discharge_medication(staff_id)
+            elif c == '3':
+                generate_discharge_summary()
+        elif ch == '12':
+            print('\n1) Add charge 2) View charges 3) Update charge 4) Delete 5) Unpaid 6) Record payment')
+            c = input('> ').strip()
+            if c == '1':
+                add_charge(staff_id)
+            elif c == '2':
+                view_charges()
+            elif c == '3':
+                update_charge_status(staff_id)
+            elif c == '4':
+                delete_charge()
+            elif c == '5':
+                get_unpaid_charges()
+            elif c == '6':
+                record_payment(staff_id)
+        elif ch == '13':
+            print('\n1) Total revenue 2) By category 3) By patient 4) Range')
+            c = input('> ').strip()
+            if c == '1':
+                total_revenue_summary()
+            elif c == '2':
+                category_wise_summary()
+            elif c == '3':
+                patient_wise_summary()
+            elif c == '4':
+                revenue_in_date_range()
+        elif ch == '0':
+            break
+        else:
+            print('Invalid choice')
+
+
+def doctor_menu(staff_id):
+    while True:
+        print('\n-- Doctor Menu --')
+        print('1. View schedule')
+        print('2. Add consultation')
+        print('3. Manage follow-up')
+        print('4. Prescribe medication')
+        print('0. Logout')
+        c = input('> ').strip()
+        if c == '1':
+            print('Use appointments.view_appointment or implement list_doctor_schedule in appointments module')
+        elif c == '2':
+            cpr = input('Enter patient CPR: ')
+            add_consultation(staff_id, cpr)
+        elif c == '3':
+            cpr = input('Enter patient CPR: ')
+            manage_followup(staff_id, cpr)
+        elif c == '4':
+            prescribe_medication(staff_id)
+        elif c == '0':
+            break
+        else:
+            print('Invalid')
+
 
 def main():
-    staff_id, access_level = staff_login()
-    main_menu(staff_id, access_level)'''
+    sid, level = staff_login()
+    if level >= 9:
+        admin_menu(sid)
+    elif level >= 7:
+        doctor_menu(sid)
+    else:
+        print('Limited menu: view appointments and personal info')
+
+
+if __name__ == '__main__':
+    main()
+ 
