@@ -2,36 +2,37 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 from datetime import datetime
 
-try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
-    
-    cur = conn.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS tbl_discharge(
-                dis_id INT AUTO_INCREMENT PRIMARY KEY,
-                dis_his_id INT,
-                adm_id INT,
-                discharge_date DATE,
-                discharge_medication ENUM('Yes','No') DEFAULT 'No',
-                discharge_advice VARCHAR(500),
-                followup_date DATE,
-                charges_paid ENUM('Yes','No') DEFAULT 'No',
-                day_off_cert ENUM ('Yes','No') DEFAULT 'No',
-                dis_summary ENUM ('Yes','No') DEFAULT 'No',
-                version INT DEFAULT 0,
-                edited_by INT NULL,
-                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (adm_id) REFERENCES tbl_admission (adm_id)
-                )''')
+def createtable_tbl_discharge():
+    try:
+        conn = connect(
+            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+            port = '28557',
+            user = 'avnadmin',
+            password = 'AVNS_kHrKn7uSeIU17qOji3M',
+            database = 'defaultdb',
+            ssl_ca = 'certs/ca.pem'
+        )
+        
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS tbl_discharge(
+                    dis_id INT AUTO_INCREMENT PRIMARY KEY,
+                    dis_his_id INT,
+                    adm_id INT,
+                    discharge_date DATE,
+                    discharge_medication ENUM('Yes','No') DEFAULT 'No',
+                    discharge_advice VARCHAR(500),
+                    followup_date DATE,
+                    charges_paid ENUM('Yes','No') DEFAULT 'No',
+                    day_off_cert ENUM ('Yes','No') DEFAULT 'No',
+                    dis_summary ENUM ('Yes','No') DEFAULT 'No',
+                    version INT DEFAULT 0,
+                    edited_by INT NULL,
+                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (adm_id) REFERENCES tbl_admission (adm_id)
+                    )''')
 
-except Error as e:
-    print(e)
+    except Error as e:
+        print(e)
 
 def record_discharge(edited_by):
     """Record patient discharge from hospital"""

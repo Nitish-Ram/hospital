@@ -3,58 +3,57 @@ from getpass import getpass
 from datetime import datetime
 from tabulate import tabulate
 
-try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
-    
-    cur = conn.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS staff (
-                staff_id INT AUTO_INCREMENT PRIMARY KEY,
-                staff_his_id INT NULL, 
-                cpr_no INT,
-                staff_name VARCHAR(100),
-                designation VARCHAR(100),
-                department VARCHAR(100),
-                user_name VARCHAR(100),
-                passcode VARCHAR(100),
-                access_level INT DEFAULT 1,
-                dob DATE,
-                email VARCHAR(100),
-                phone_no VARCHAR(50),
-                is_active ENUM('Yes','No') DEFAULT 'Yes',
-                version INT DEFAULT 0,
-                edited_by INT NULL,
-                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )''')
-    cur.execute('''CREATE TABLE IF NOT EXISTS patients (
-                patient_id INT AUTO_INCREMENT PRIMARY KEY,
-                patient_his_id INT NULL,
-                cpr_no INT,
-                patient_name VARCHAR(100),
-                dob DATE,
-                email VARCHAR(100),
-                phone_no VARCHAR(50),
-                address VARCHAR(200),
-                next_of_kin VARCHAR(100),
-                relationship VARCHAR(50),
-                emergency_contact VARCHAR(100),
-                patient_status INT,
-                is_active ENUM('Yes','No') DEFAULT 'Yes',
-                FOREIGN KEY (patient_status) REFERENCES lookup_code(item_id),
-                version INT DEFAULT 0,
-                edited_by INT NULL,
-                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )''')
-                #patient_status ENUM('Active','Inactive','Deceased') DEFAULT 'Active'
-                #access_level = {'admin' : 9, 'consultant' : 8, 'surgeon' : 8, 'doctor' : 7, 'pharmacist' : 6, 'nurse' : 5, 'radiographer' : 5}
-except Error as e:
-    print(e)
+def createtable_user_creation():
+    try:
+        conn = connect(
+            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+            port = '28557',
+            user = 'avnadmin',
+            password = 'AVNS_kHrKn7uSeIU17qOji3M',
+            database = 'defaultdb',
+            ssl_ca = 'certs/ca.pem'
+        )
+        
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS staff (
+                    staff_id INT AUTO_INCREMENT PRIMARY KEY,
+                    staff_his_id INT NULL, 
+                    cpr_no INT,
+                    staff_name VARCHAR(100),
+                    designation VARCHAR(100),
+                    department VARCHAR(100),
+                    user_name VARCHAR(100),
+                    passcode VARCHAR(100),
+                    access_level INT DEFAULT 1,
+                    dob DATE,
+                    email VARCHAR(100),
+                    phone_no VARCHAR(50),
+                    is_active ENUM('Yes','No') DEFAULT 'Yes',
+                    version INT DEFAULT 0,
+                    edited_by INT NULL,
+                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS patients (
+                    patient_id INT AUTO_INCREMENT PRIMARY KEY,
+                    patient_his_id INT NULL,
+                    cpr_no INT,
+                    patient_name VARCHAR(100),
+                    dob DATE,
+                    email VARCHAR(100),
+                    phone_no VARCHAR(50),
+                    address VARCHAR(200),
+                    next_of_kin VARCHAR(100),
+                    relationship VARCHAR(50),
+                    emergency_contact VARCHAR(100),
+                    patient_status INT,
+                    is_active ENUM('Yes','No') DEFAULT 'Yes',
+                    FOREIGN KEY (patient_status) REFERENCES lookup_code(item_id),
+                    version INT DEFAULT 0,
+                    edited_by INT NULL,
+                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )''')
+    except Error as e:
+        print(e)
 
 def create_staff(edited_by):
     while True:

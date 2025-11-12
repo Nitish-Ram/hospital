@@ -2,38 +2,39 @@ from mysql.connector import connect, Error
 from datetime import datetime
 from tabulate import tabulate
 
-try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
-    
-    cur = conn.cursor()
+def createtable_inpatient_procedures():
+    try:
+        conn = connect(
+            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+            port = '28557',
+            user = 'avnadmin',
+            password = 'AVNS_kHrKn7uSeIU17qOji3M',
+            database = 'defaultdb',
+            ssl_ca = 'certs/ca.pem'
+        )
+        
+        cur = conn.cursor()
 
-    cur.execute('''CREATE TABLE IF NOT EXISTS inpatient_procedures (
-                ipp_id INT AUTO_INCREMENT PRIMARY KEY,
-                ipp_his_id INT,
-                adm_id INT,
-                procedure_id INT,
-                date_of_procedure DATETIME,
-                doctor_id INT,
-                nurse_id INT,
-                payment_done ENUM('Yes','No') DEFAULT 'No',
-                consumables_paid ENUM('Yes','No') DEFAULT 'No',
-                version INT DEFAULT 0,
-                edited_by INT NULL,
-                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (adm_id) REFERENCES tbl_admission(adm_id),
-                FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
-                FOREIGN KEY (nurse_id) REFERENCES staff(staff_id),
-                FOREIGN KEY (procedure_id) REFERENCES lookup_code(item_id)
-                )''')
-except Error as e:
-    print(e)
+        cur.execute('''CREATE TABLE IF NOT EXISTS inpatient_procedures (
+                    ipp_id INT AUTO_INCREMENT PRIMARY KEY,
+                    ipp_his_id INT,
+                    adm_id INT,
+                    procedure_id INT,
+                    date_of_procedure DATETIME,
+                    doctor_id INT,
+                    nurse_id INT,
+                    payment_done ENUM('Yes','No') DEFAULT 'No',
+                    consumables_paid ENUM('Yes','No') DEFAULT 'No',
+                    version INT DEFAULT 0,
+                    edited_by INT NULL,
+                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (adm_id) REFERENCES tbl_admission(adm_id),
+                    FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
+                    FOREIGN KEY (nurse_id) REFERENCES staff(staff_id),
+                    FOREIGN KEY (procedure_id) REFERENCES lookup_code(item_id)
+                    )''')
+    except Error as e:
+        print(e)
 
 def add_inpatient_procedure(edited_by, adm_id=None):
     """Add a procedure record for an inpatient"""

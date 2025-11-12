@@ -2,36 +2,37 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 from datetime import datetime
 
-try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
-    cur = conn.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS appointments (
-                appt_id INT AUTO_INCREMENT PRIMARY KEY,
-                appt_his_id INT,
-                patient_id INT,
-                doctor_id INT,
-                clinic INT,
-                appt_book_time DATETIME,
-                cons_fee_paid ENUM('Yes','No') DEFAULT 'No',
-                cons_payment_receiptno INT,
-                cons_paid_amount VARCHAR(100),
-                appt_is_active ENUM('Yes','No') DEFAULT 'Yes',
-                version INT DEFAULT 0,
-                edited_by INT NULL,
-                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
-                FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
-                FOREIGN KEY (clinic) REFERENCES lookup_code(item_id)
-                )''')
-except Error as e:
-    print(e)
+def createtable_appointments():
+    try:
+        conn = connect(
+            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+            port = '28557',
+            user = 'avnadmin',
+            password = 'AVNS_kHrKn7uSeIU17qOji3M',
+            database = 'defaultdb',
+            ssl_ca = 'certs/ca.pem'
+        )
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS appointments (
+                    appt_id INT AUTO_INCREMENT PRIMARY KEY,
+                    appt_his_id INT,
+                    patient_id INT,
+                    doctor_id INT,
+                    clinic INT,
+                    appt_book_time DATETIME,
+                    cons_fee_paid ENUM('Yes','No') DEFAULT 'No',
+                    cons_payment_receiptno INT,
+                    cons_paid_amount VARCHAR(100),
+                    appt_is_active ENUM('Yes','No') DEFAULT 'Yes',
+                    version INT DEFAULT 0,
+                    edited_by INT NULL,
+                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+                    FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
+                    FOREIGN KEY (clinic) REFERENCES lookup_code(item_id)
+                    )''')
+    except Error as e:
+        print(e)
 
 def view_appointment():
     cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
