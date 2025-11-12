@@ -20,9 +20,13 @@ from summary import *
 
 try:
     conn = connect(
-        host='localhost', user='root', password='Fawaz@33448113', database='hospital'
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
     )
-
     
     cur = conn.cursor()
 except Error as e:

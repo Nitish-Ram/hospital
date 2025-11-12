@@ -4,10 +4,12 @@ from datetime import datetime
 
 try:
     conn = connect(
-        host = 'localhost',
-        user = 'root',
-        password = 'Fawaz@33448113',
-        database = 'hospital'
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
     )
     cur = conn.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS appointments (
@@ -18,7 +20,7 @@ try:
                 clinic INT,
                 appt_book_time DATETIME,
                 cons_fee_paid ENUM('Yes','No') DEFAULT 'No',
-                cons_payment_receiptno INT AUTO_INCREMENT,
+                cons_payment_receiptno INT,
                 cons_paid_amount VARCHAR(100),
                 appt_is_active ENUM('Yes','No') DEFAULT 'Yes',
                 version INT DEFAULT 0,
