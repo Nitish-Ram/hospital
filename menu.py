@@ -26,9 +26,15 @@ try:
         password = 'AVNS_kHrKn7uSeIU17qOji3M',
         database = 'defaultdb',
         ssl_ca = 'certs/ca.pem'
+        
     )
     print("Connected.")
     cur = conn.cursor()
+    cur.execute("SHOW TABLES;")
+    tables = cur.fetchall()
+    print("Tables in your database:")
+    for t in tables:
+        print(t[0])
 except Error as e:
     print("DB connection error:", e)
  
