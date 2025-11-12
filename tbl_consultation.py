@@ -46,7 +46,7 @@ try:
                 discharged ENUM('Yes','No') DEFAULT 'No',
                 medication ENUM('Yes','No') DEFAULT 'No',
                 followup ENUM('Yes','No') DEFAULT 'No',
-                admission_to_ward ENUM('Yes','No') DEFAULT 'No'),
+                admission_to_ward ENUM('Yes','No') DEFAULT 'No',
                 version INT DEFAULT 0,
                 edited_by INT,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
