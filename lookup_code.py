@@ -23,6 +23,7 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
+    '''#first run to populate initial data
     cur.execute("""INSERT INTO lookup_code ( item_name, item_category, item_if_active, version)
                 VALUES
                 ('Complete Blood Counts', 'Lab', 'Yes',0),
@@ -85,6 +86,7 @@ try:
                 ('Angioplasty','SurgicalProcedure','Yes',0),
                 ('Endoscopy','SurgicalProcedure','Yes',0)
                 """)
+            '''
 except Error as e:
     print(e)
 
