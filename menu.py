@@ -20,18 +20,21 @@ from summary import *
 
 try:
     conn = connect(
-        host='localhost', user='root', password='Fawaz@33448113', database='hospital'
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
     )
-
-    
+    print("Connected.")
     cur = conn.cursor()
 except Error as e:
     print("DB connection error:", e)
  
 
-
-
 def staff_login():
+    print("Test run started.")
     while True:
         user_name = input("Username: ").strip()
         passcode = getpass("Passcode: ")
