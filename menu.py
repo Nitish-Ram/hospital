@@ -27,15 +27,14 @@ try:
         database = 'defaultdb',
         ssl_ca = 'certs/ca.pem'
     )
-    
+    print("Connected.")
     cur = conn.cursor()
 except Error as e:
     print("DB connection error:", e)
     sys.exit(1)
 
-
-
 def staff_login():
+    print("Test run started.")
     while True:
         user_name = input("Username: ").strip()
         passcode = getpass("Passcode: ")
