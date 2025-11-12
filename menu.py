@@ -1,6 +1,6 @@
 from mysql.connector import connect, Error
 from getpass import getpass
-import sys
+
 
 # import application modules
 from lookup_code import *
@@ -27,7 +27,7 @@ try:
     cur = conn.cursor()
 except Error as e:
     print("DB connection error:", e)
-    sys.exit(1)
+ 
 
 
 
