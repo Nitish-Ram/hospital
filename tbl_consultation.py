@@ -3,58 +3,57 @@ from tabulate import tabulate
 from datetime import datetime
 from medication import prescribe_medication
 
-def createtable_tbl_consulation():
-    try:
-        conn = connect(
-            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-            port = '28557',
-            user = 'avnadmin',
-            password = 'AVNS_kHrKn7uSeIU17qOji3M',
-            database = 'defaultdb',
-            ssl_ca = 'certs/ca.pem'
-        )
-        
-        cur = conn.cursor()
+try:
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+    )
+    
+    cur = conn.cursor()
 
-        cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultation(
-                    cons_id INT AUTO_INCREMENT PRIMARY KEY,
-                    cons_his_id INT,
-                    appt_id INT,
-                    doctor_id INT,
-                    clinic INT,
-                    cons_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    complaints VARCHAR(500),
-                    cons_notes VARCHAR(500),
-                    lab_test ENUM('Yes','No') DEFAULT 'No',
-                    imaging_test ENUM('Yes','No') DEFAULT 'No',
-                    discharged ENUM('Yes','No') DEFAULT 'No',
-                    medication ENUM('Yes','No') DEFAULT 'No',
-                    version INT DEFAULT 0,
-                    edited_by INT,
-                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (appt_id) REFERENCES appointments(appt_id),
-                    FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
-                    FOREIGN KEY (clinic) REFERENCES lookup_code(item_id)
-                    )''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultationF(
-                    consF_id INT AUTO_INCREMENT PRIMARY KEY,
-                    consF_his_id INT,
-                    cons_id INT,
-                    consF_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    lab_result VARCHAR(500),
-                    imaging_result VARCHAR(500),
-                    diagnosis VARCHAR(500),
-                    discharged ENUM('Yes','No') DEFAULT 'No',
-                    medication ENUM('Yes','No') DEFAULT 'No',
-                    followup ENUM('Yes','No') DEFAULT 'No',
-                    admission_to_ward ENUM('Yes','No') DEFAULT 'No'),
-                    version INT DEFAULT 0,
-                    edited_by INT,
-                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (cons_id) REFERENCES tbl_consultation(cons_id)
-                    )''')
-    except Error as e:
-        print(e)
+    cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultation(
+                cons_id INT AUTO_INCREMENT PRIMARY KEY,
+                cons_his_id INT,
+                appt_id INT,
+                doctor_id INT,
+                clinic INT,
+                cons_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                complaints VARCHAR(500),
+                cons_notes VARCHAR(500),
+                lab_test ENUM('Yes','No') DEFAULT 'No',
+                imaging_test ENUM('Yes','No') DEFAULT 'No',
+                discharged ENUM('Yes','No') DEFAULT 'No',
+                medication ENUM('Yes','No') DEFAULT 'No',
+                version INT DEFAULT 0,
+                edited_by INT,
+                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (appt_id) REFERENCES appointments(appt_id),
+                FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
+                FOREIGN KEY (clinic) REFERENCES lookup_code(item_id)
+                )''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultationF(
+                consF_id INT AUTO_INCREMENT PRIMARY KEY,
+                consF_his_id INT,
+                cons_id INT,
+                consF_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                lab_result VARCHAR(500),
+                imaging_result VARCHAR(500),
+                diagnosis VARCHAR(500),
+                discharged ENUM('Yes','No') DEFAULT 'No',
+                medication ENUM('Yes','No') DEFAULT 'No',
+                followup ENUM('Yes','No') DEFAULT 'No',
+                admission_to_ward ENUM('Yes','No') DEFAULT 'No'),
+                version INT DEFAULT 0,
+                edited_by INT,
+                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (cons_id) REFERENCES tbl_consultation(cons_id)
+                )''')
+except Error as e:
+    print(e)
 
 def add_consultation(edited_by, cpr_no):
     cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name

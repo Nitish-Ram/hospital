@@ -1,93 +1,92 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
 
-def createtable_lookup_code():
-    try:
-        conn = connect(
-            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-            port = '28557',
-            user = 'avnadmin',
-            password = 'AVNS_kHrKn7uSeIU17qOji3M',
-            database = 'defaultdb',
-            ssl_ca = 'certs/ca.pem'
-        )
-        
-        cur = conn.cursor()
-        #lookup_code
-        cur.execute('''CREATE TABLE IF NOT EXISTS lookup_code (
-                    item_id INT AUTO_INCREMENT PRIMARY KEY,
-                    item_his_id INT,
-                    item_name VARCHAR(100),
-                    item_category VARCHAR(100),
-                    item_if_active ENUM('Yes', 'No') DEFAULT 'Yes',
-                    version INT DEFAULT 0,
-                    edited_by INT NULL,
-                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )''')
-        cur.execute("""INSERT INTO lookup_code ( item_name, item_category, item_if_active, version)
-                    VALUES
-                    ('Complete Blood Counts', 'Lab', 'Yes',0),
-                    ('Kidney Function Test', 'Lab', 'Yes',0),
-                    ('Liver Function Test', 'Lab', 'Yes',0),
-                    ('Urine Analysis', 'Lab', 'Yes',0),
-                    ('Hormone tests', 'Lab', 'Yes',0),
-                    ('Biochemistry Tests', 'Lab', 'Yes',0),
-                    ('Coagulation Test', 'Lab', 'Yes',0),
-                    ('Microbiology Test', 'Lab', 'Yes',0),
-                    ('X-ray', 'Imaging', 'Yes',0),
-                    ('CT', 'Imaging', 'Yes',0),
-                    ('MRI', 'Imaging' ,'Yes',0),
-                    ('Ultrasound', 'Imaging', 'Yes',0),
-                    ('Echo cardiogram','Imaging', 'Yes',0),
-                    ('Clinic_1', 'Location', 'Yes',0),
-                    ('Clinic_2', 'Location', 'Yes',0),
-                    ('Clinic_3', 'Location', 'Yes',0),
-                    ('Clinic_4', 'Location', 'Yes',0),
-                    ('Neurology', 'Speciality', 'Yes',0),
-                    ('ENT', 'Speciality', 'Yes',0),
-                    ('Cardiology', 'Speciality', 'Yes',0),
-                    ('Cardio Thoracic surgery', 'Speciality', 'Yes',0),
-                    ('General Medicine','Speciality','Yes',0),
-                    ('General Surgery','Speciality','Yes',0),
-                    ('Orthopedics','Speciality','Yes',0),
-                    ('Nephrology', 'Speciality', 'Yes',0),
-                    ('Urology', 'Speciality', 'Yes',0),
-                    ('Gynecology', 'Speciality', 'Yes',0),
-                    ('test lab', 'Lab', 'Yes',0),
-                    ('Credit card', 'Payment_Type', 'Yes',0),
-                    ('Debit card', 'Payment_Type', 'Yes',0),
-                    ('Benefit pay', 'Payment_Type', 'Yes',0),
-                    ('Insurance', 'Payment_Type', 'Yes',0),
-                    ('Sponsor Guarantee', 'Payment_Type', 'Yes',0),
-                    ('Cash payment', 'Payment_Type', 'Yes',0),
-                    ('Consultation fees', 'Payment_Category', 'Yes',0),
-                    ('Lab test charges', 'Payment_Category', 'Yes',0),
-                    ('Image test charges', 'Payment_Category', 'Yes',0),
-                    ('Medication charges', 'Payment_Category', 'Yes',0),
-                    ('Admission charges', 'IP_Payment_Category', 'Yes',0),
-                    ('Operation theatre charges', 'IP_Payment_Category', 'Yes',0),
-                    ('Procedure charges', 'IP_Payment_Category', 'Yes',0),
-                    ('Consultant','Designation','Yes',0),
-                    ('Surgeon','Designation','Yes',0),
-                    ('Doctor','Designation','Yes',0),
-                    ('Nurse','Designation','Yes',0),
-                    ('Radiographer','Designation','Yes',0),
-                    ('Lab technologist','Designation','Yes',0),
-                    ('Cashier','Designation','Yes',0),
-                    ('Receptionist','Designation','Yes',0),
-                    ('Brain surgery','SurgicalProcedure','Yes',0),
-                    ('Eye surgery','SurgicalProcedure','Yes',0),
-                    ('Ear surgery','SurgicalProcedure','Yes',0),
-                    ('Throat surgery','SurgicalProcedure','Yes',0),
-                    ('Heart surgery','SurgicalProcedure','Yes',0),
-                    ('Abdomen surgery','SurgicalProcedure','Yes',0),
-                    ('Kidney surgery','SurgicalProcedure','Yes',0),
-                    ('Bone surgery','SurgicalProcedure','Yes',0),
-                    ('Angioplasty','SurgicalProcedure','Yes',0),
-                    ('Endoscopy','SurgicalProcedure','Yes',0)
-                    """)
-    except Error as e:
-        print(e)
+try:
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+    )
+    
+    cur = conn.cursor()
+    #lookup_code
+    cur.execute('''CREATE TABLE IF NOT EXISTS lookup_code (
+                item_id INT AUTO_INCREMENT PRIMARY KEY,
+                item_his_id INT,
+                item_name VARCHAR(100),
+                item_category VARCHAR(100),
+                item_if_active ENUM('Yes', 'No') DEFAULT 'Yes',
+                version INT DEFAULT 0,
+                edited_by INT NULL,
+                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )''')
+    cur.execute("""INSERT INTO lookup_code ( item_name, item_category, item_if_active, version)
+                VALUES
+                ('Complete Blood Counts', 'Lab', 'Yes',0),
+                ('Kidney Function Test', 'Lab', 'Yes',0),
+                ('Liver Function Test', 'Lab', 'Yes',0),
+                ('Urine Analysis', 'Lab', 'Yes',0),
+                ('Hormone tests', 'Lab', 'Yes',0),
+                ('Biochemistry Tests', 'Lab', 'Yes',0),
+                ('Coagulation Test', 'Lab', 'Yes',0),
+                ('Microbiology Test', 'Lab', 'Yes',0),
+                ('X-ray', 'Imaging', 'Yes',0),
+                ('CT', 'Imaging', 'Yes',0),
+                ('MRI', 'Imaging' ,'Yes',0),
+                ('Ultrasound', 'Imaging', 'Yes',0),
+                ('Echo cardiogram','Imaging', 'Yes',0),
+                ('Clinic_1', 'Location', 'Yes',0),
+                ('Clinic_2', 'Location', 'Yes',0),
+                ('Clinic_3', 'Location', 'Yes',0),
+                ('Clinic_4', 'Location', 'Yes',0),
+                ('Neurology', 'Speciality', 'Yes',0),
+                ('ENT', 'Speciality', 'Yes',0),
+                ('Cardiology', 'Speciality', 'Yes',0),
+                ('Cardio Thoracic surgery', 'Speciality', 'Yes',0),
+                ('General Medicine','Speciality','Yes',0),
+                ('General Surgery','Speciality','Yes',0),
+                ('Orthopedics','Speciality','Yes',0),
+                ('Nephrology', 'Speciality', 'Yes',0),
+                ('Urology', 'Speciality', 'Yes',0),
+                ('Gynecology', 'Speciality', 'Yes',0),
+                ('test lab', 'Lab', 'Yes',0),
+                ('Credit card', 'Payment_Type', 'Yes',0),
+                ('Debit card', 'Payment_Type', 'Yes',0),
+                ('Benefit pay', 'Payment_Type', 'Yes',0),
+                ('Insurance', 'Payment_Type', 'Yes',0),
+                ('Sponsor Guarantee', 'Payment_Type', 'Yes',0),
+                ('Cash payment', 'Payment_Type', 'Yes',0),
+                ('Consultation fees', 'Payment_Category', 'Yes',0),
+                ('Lab test charges', 'Payment_Category', 'Yes',0),
+                ('Image test charges', 'Payment_Category', 'Yes',0),
+                ('Medication charges', 'Payment_Category', 'Yes',0),
+                ('Admission charges', 'IP_Payment_Category', 'Yes',0),
+                ('Operation theatre charges', 'IP_Payment_Category', 'Yes',0),
+                ('Procedure charges', 'IP_Payment_Category', 'Yes',0),
+                ('Consultant','Designation','Yes',0),
+                ('Surgeon','Designation','Yes',0),
+                ('Doctor','Designation','Yes',0),
+                ('Nurse','Designation','Yes',0),
+                ('Radiographer','Designation','Yes',0),
+                ('Lab technologist','Designation','Yes',0),
+                ('Cashier','Designation','Yes',0),
+                ('Receptionist','Designation','Yes',0),
+                ('Brain surgery','SurgicalProcedure','Yes',0),
+                ('Eye surgery','SurgicalProcedure','Yes',0),
+                ('Ear surgery','SurgicalProcedure','Yes',0),
+                ('Throat surgery','SurgicalProcedure','Yes',0),
+                ('Heart surgery','SurgicalProcedure','Yes',0),
+                ('Abdomen surgery','SurgicalProcedure','Yes',0),
+                ('Kidney surgery','SurgicalProcedure','Yes',0),
+                ('Bone surgery','SurgicalProcedure','Yes',0),
+                ('Angioplasty','SurgicalProcedure','Yes',0),
+                ('Endoscopy','SurgicalProcedure','Yes',0)
+                """)
+except Error as e:
+    print(e)
 
 def add_items_lookup_code(edited_by):
     while True:

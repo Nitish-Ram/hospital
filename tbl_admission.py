@@ -2,37 +2,36 @@ from mysql.connector import connect, Error
 from datetime import datetime
 from tabulate import tabulate
 
-def createtable_tbl_admission():
-    try:
-        conn = connect(
-            host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-            port = '28557',
-            user = 'avnadmin',
-            password = 'AVNS_kHrKn7uSeIU17qOji3M',
-            database = 'defaultdb',
-            ssl_ca = 'certs/ca.pem'
-        )
-        
-        cur = conn.cursor()
+try:
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+    )
+    
+    cur = conn.cursor()
 
 
-        cur.execute('''CREATE TABLE IF NOT EXISTS tbl_admission(
-                    adm_id INT AUTO_INCREMENT PRIMARY KEY,
-                    adm_his_id INT,
-                    patient_id INT,
-                    adm_date DATE,
-                    adm_doctor INT,
-                    ward INT,
-                    payment ENUM('Yes','No') DEFAULT 'No',
-                    version INT DEFAULT 0,
-                    edited_by INT NULL,
-                    edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
-                    FOREIGN KEY (adm_doctor) REFERENCES staff(staff_id),
-                    FOREIGN KEY (ward) REFERENCES lookup_code(item_id)
-                    )''')
-    except Error as e:
-        print(e)
+    cur.execute('''CREATE TABLE IF NOT EXISTS tbl_admission(
+                adm_id INT AUTO_INCREMENT PRIMARY KEY,
+                adm_his_id INT,
+                patient_id INT,
+                adm_date DATE,
+                adm_doctor INT,
+                ward INT,
+                payment ENUM('Yes','No') DEFAULT 'No',
+                version INT DEFAULT 0,
+                edited_by INT NULL,
+                edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+                FOREIGN KEY (adm_doctor) REFERENCES staff(staff_id),
+                FOREIGN KEY (ward) REFERENCES lookup_code(item_id)
+                )''')
+except Error as e:
+    print(e)
 
 def add_admission(edited_by):
     """Admit a patient to the hospital"""
