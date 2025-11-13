@@ -44,7 +44,7 @@ try:
         
     )
     print("Connected.")
-    cur = conn.cursor(buffered= True)
+    cur = conn.cursor()
     cur.execute("SHOW TABLES;")
     tables = cur.fetchall()
     print("Tables in your database:")
@@ -58,7 +58,7 @@ def staff_login():
     print(f"\n{WARNING}Test run started.{RESET}\n")
     while True:
         user_name = input(f"{CYAN}Username: {RESET}").strip()
-        passcode = getpass(f"{CYAN}Passcode: HIDDEN{RESET}")
+        passcode = getpass(f"{CYAN}Passcode: {RESET}")
         try:
             cur.execute('SELECT staff_id, passcode, access_level FROM staff WHERE user_name=%s', (user_name,))
             row = cur.fetchone()
@@ -272,7 +272,7 @@ def doctor_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            print(f'{WARNING}Use appointments.view_appointment or implement list_doctor_schedule in appointments module{RESET}')
+            list_doctor_schedule(staff_id)
         elif c == '2':
             cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
             add_consultation(staff_id, cpr)
@@ -286,10 +286,61 @@ def doctor_menu(staff_id):
         else:
             print(f'{ERROR}Invalid choice{RESET}')
 
+def receptionist_menu(staff_id):
+    while True:
+        print(f"\n{MENU_TITLE}═══════════════════════════════{RESET}")
+        print(f"{MENU_TITLE}     RECEPTIONIST MENU{RESET}")
+        print(f"{MENU_TITLE}═══════════════════════════════{RESET}\n")
+        print(f"{CYAN}1.{RESET} Book appointment")
+        print(f"{CYAN}2.{RESET} View appointments")
+        print(f"{CYAN}3.{RESET} Update appointment")
+        print(f"{CYAN}4.{RESET} Cancel appointment")
+        print(f"{CYAN}0.{RESET} Logout")
+        print(f"{MENU_TITLE}───────────────────────────────{RESET}")
+        c = input(f"{YELLOW}Choice: {RESET}").strip()
+        if c == '1':
+            pid = prompt_int('Enter patient ID: ')
+            book_appointment(staff_id, pid)
+        elif c == '2':
+            view_appointment()
+        elif c == '3':
+            pid = prompt_int('Enter patient ID: ')
+            update_appointment(staff_id, pid)
+        elif c == '4':
+            delete_appointment(staff_id)
+        elif c == '0':
+            break
+        else:
+            print(f'{ERROR}Invalid choice{RESET}')
+
+def pharmacist_menu(staff_id):
+    while True:
+        print(f"\n{MENU_TITLE}═══════════════════════════════{RESET}")
+        print(f"{MENU_TITLE}      PHARMACIST MENU{RESET}")
+        print(f"{MENU_TITLE}═══════════════════════════════{RESET}\n")
+        print(f"{CYAN}1.{RESET} Prescribe medication")
+        print(f"{CYAN}2.{RESET} View all medications")
+        print(f"{CYAN}3.{RESET} Update medication")
+        print(f"{CYAN}4.{RESET} Delete medication")
+        print(f"{CYAN}0.{RESET} Logout")
+        print(f"{MENU_TITLE}───────────────────────────────{RESET}")
+        c = input(f"{YELLOW}Choice: {RESET}").strip()
+        if c == '1':
+            prescribe_medication(staff_id)
+        elif c == '2':
+            view_all_medications()
+        elif c == '3':
+            update_medication(staff_id)
+        elif c == '4':
+            delete_medication()
+        elif c == '0':
+            break
+        else:
+            print(f'{ERROR}Invalid choice{RESET}')
 
 def main():
     print(f'\n{HEADER}╔═════════════════════════════════════════╗{RESET}')
-    print(f'{HEADER}║   WELCOME TO SAVELIVES HOSPITAL   ║{RESET}')
+    print(f'{HEADER}║   WELCOME TO SAVELIVES HOSPITAL         ║{RESET}')
     print(f'{HEADER}╚═════════════════════════════════════════╝{RESET}\n')
 
     sid, level = staff_login()
@@ -297,6 +348,10 @@ def main():
         admin_menu(sid)
     elif level >= 7:
         doctor_menu(sid)
+    elif level >= 5:
+        receptionist_menu(sid)
+    elif level >= 4:
+        pharmacist_menu(sid)
     else:
         print(f'{WARNING}Limited menu: view appointments and personal info{RESET}')
 

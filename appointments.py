@@ -208,3 +208,12 @@ def delete_appointment(edited_by):
             print("Enter only integers.")
     cur.execute('''UPDATE appointments SET appt_if_active = 'No', edited_by = %s
                 WHERE appt_id = %s''', (edited_by, appt_id))
+    
+def list_doctor_schedule(doctor_id):
+    cur.execute("""SELECT a.appt_id, p.patient_name, a.appt_book_time, a.cons_fee_paid, a.cons_paid_amount
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                WHERE a.doctor_id = %s AND a.appt_is_active = 'Yes'""", (doctor_id,))
+    data = cur.fetchall()
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers = headers, tablefmt= 'pretty'))
