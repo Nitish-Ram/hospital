@@ -32,6 +32,35 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
+    cur.execute("""
+    INSERT INTO staff (
+        staff_name,
+        designation,
+        department,
+        user_name,
+        passcode,
+        access_level,
+        cpr_no,
+        dob,
+        email,
+        phone_no
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+""", (
+    'Admin',
+    'Admin',
+    'IT',
+    'admin',
+    'admin123',
+    99,
+    0,
+    '1990-01-01',
+    'admin@example.com',
+    '0000000000'
+))
+
+# Commit the change
+    conn.commit()
+
     cur.execute('''CREATE TABLE IF NOT EXISTS patients (
                 patient_id INT AUTO_INCREMENT PRIMARY KEY,
                 patient_his_id INT NULL,

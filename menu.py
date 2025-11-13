@@ -44,7 +44,7 @@ try:
         
     )
     print("Connected.")
-    cur = conn.cursor()
+    cur = conn.cursor(buffered= True)
     cur.execute("SHOW TABLES;")
     tables = cur.fetchall()
     print("Tables in your database:")
