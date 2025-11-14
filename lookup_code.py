@@ -23,9 +23,11 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
-    '''#first run to populate initial data
     cur.execute("""INSERT INTO lookup_code ( item_name, item_category, item_if_active, version)
                 VALUES
+                ('Active', 'patient_status', 'Yes',0) ,
+                ('Inactive', 'patient_status', 'Yes',0),
+                ('Deceased', 'patient_status', 'Yes',0),
                 ('Complete Blood Counts', 'Lab', 'Yes',0),
                 ('Kidney Function Test', 'Lab', 'Yes',0),
                 ('Liver Function Test', 'Lab', 'Yes',0),
@@ -86,7 +88,7 @@ try:
                 ('Angioplasty','SurgicalProcedure','Yes',0),
                 ('Endoscopy','SurgicalProcedure','Yes',0)
                 """)
-            '''
+    conn.commit()
 except Error as e:
     print(e)
 

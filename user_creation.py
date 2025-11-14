@@ -32,33 +32,7 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
-    cur.execute("""
-    INSERT INTO staff (
-        staff_name,
-        designation,
-        department,
-        user_name,
-        passcode,
-        access_level,
-        cpr_no,
-        dob,
-        email,
-        phone_no
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-""", (
-    'Admin',
-    'Admin',
-    'IT',
-    'admin',
-    'admin123',
-    99,
-    0,
-    '1990-01-01',
-    'admin@example.com',
-    '0000000000'
-))
 
-# Commit the change
     conn.commit()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS patients (
@@ -141,7 +115,7 @@ def create_patient(edited_by):
     patient_name = input("Enter patient's name : ")
     while True:
         try:
-            dob_input = ("Enter date of birth (YYYY-MM-DD) : ")
+            dob_input = input("Enter date of birth (YYYY-MM-DD) : ")
             dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
             break
         except ValueError:
@@ -155,8 +129,8 @@ def create_patient(edited_by):
 
     #--to obtain patient status--
 
-    cur.execute('''SELECT item_id, item_name FROM lookup_code
-                WHERE item_category = 'patient_status' and item_if_active = "Yes"''')
+    cur.execute("""SELECT item_id, item_name FROM lookup_code
+                WHERE item_category = 'patient_status' and item_if_active = 'Yes'""")
     statuses = cur.fetchall()
     print(tabulate(statuses, headers=['ID', 'Status'], tablefmt='pretty'))
     while True:
@@ -175,8 +149,8 @@ def create_patient(edited_by):
     cur.execute(query, (cpr_no, patient_name, dob, email, phone_no, address, next_of_kin, relationship, emergency_contact, patient_status, edited_by))
     patient_id = cur.lastrowid
     patient_his_id = patient_id
-    cur.execute('''UPDATE patient SET patient_his_id = %s
-                WHERE patient_id = %s)''',
+    cur.execute('''UPDATE patients SET patient_his_id = %s
+                WHERE patient_id = %s''',
                 (patient_his_id, patient_id))
     conn.commit()
     print("Patient record created successfully.")

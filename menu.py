@@ -1,8 +1,6 @@
 from mysql.connector import connect, Error
 from getpass import getpass
 
-
-# import application modules
 from lookup_code import *
 from user_creation import *
 from inventories import *
@@ -44,7 +42,7 @@ try:
         
     )
     print("Connected.")
-    cur = conn.cursor()
+    cur = conn.cursor(buffered=True)
     cur.execute("SHOW TABLES;")
     tables = cur.fetchall()
     print("Tables in your database:")
@@ -122,7 +120,7 @@ def admin_menu(staff_id):
                 remove_items_lookup_code(staff_id)
             elif c == '4':
                 cat = input(f'{CYAN}Enter category: {RESET}')
-                cur.execute('SELECT item_id, item_name FROM lookup_code WHERE item_category=%s AND item_if_active="Yes"', (cat,))
+                cur.execute("SELECT item_id, item_name FROM lookup_code WHERE item_category=%s AND item_if_active='Yes'", (cat,))
                 rows = cur.fetchall()
                 if rows:
                     print(f"\n{SUCCESS}Items found:{RESET}")
@@ -154,13 +152,44 @@ def admin_menu(staff_id):
             elif c == '4':
                 delete_medication()
         elif ch == '5':
-            print(f"\n{MENU_TITLE}1) Create patient  2) Update patient  3) View admissions{RESET}")
+            print(f"\n{MENU_TITLE}1) Create patient  2) Update patient 3) View patients 4) View admissions{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 create_patient(staff_id)
             elif c == '2':
                 update_patient(staff_id)
             elif c == '3':
+                print("\n1) Search patient by CPR number  2) View all patients")
+                sub = input(f"{YELLOW}> {RESET}").strip()
+
+                if sub == '1':
+                    cpr_no = input("Enter patient CPR number: ").strip()
+                    try:
+                        cur.execute("SELECT * FROM patients WHERE cpr_no = %s", (cpr_no,))
+                        result = cur.fetchone()
+                        if result:
+                            print("\nPatient details:")
+                            print(result)
+                        else:
+                            print(f"{RED}No patient found with CPR {cpr}.{RESET}")
+                    except Exception as e:
+                        print(f"{RED}Database error: {e}{RESET}")
+                elif sub == '2':
+                    try:
+                        cur.execute("SELECT * FROM patients")
+                        results = cur.fetchall()
+                        if results:
+                            print("\nAll patients:")
+                            for row in results:
+                                print(row)
+                        else:
+                            print(f"{RED}No patients found.{RESET}")
+                    except Exception as e:
+                        print(f"{RED}Database error: {e}{RESET}")
+
+                else:
+                    print(f"{RED}Invalid choice.{RESET}")
+            elif c == '4':
                 pid = prompt_int('Enter patient ID: ')
                 get_patient_admissions(pid)
         elif ch == '6':
@@ -272,7 +301,8 @@ def doctor_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            list_doctor_schedule(staff_id)
+            pass
+            #list_doctor_schedule(staff_id)
         elif c == '2':
             cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
             add_consultation(staff_id, cpr)
