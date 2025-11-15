@@ -184,7 +184,7 @@ def add_discharge_medication(edited_by):
     except Error as e:
         print(f" Database Error: {e}")
 
-def generate_discharge_summary(edited_by=None):
+def generate_discharge_summary():
     """Generate discharge summary report"""
     try:
         print(" Discharge Summary Report")

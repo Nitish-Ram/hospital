@@ -136,7 +136,7 @@ def add_admission(edited_by):
     except Error as e:
         print(f" Database Error: {e}")
 
-def view_admissions(edited_by=None):
+def view_admissions():
     """View all active admissions"""
     try:
         query = """
