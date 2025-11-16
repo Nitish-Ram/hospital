@@ -23,6 +23,7 @@ try:
                 cons_payment_receiptno INT,
                 cons_paid_amount VARCHAR(100),
                 appt_is_active ENUM('Yes','No') DEFAULT 'Yes',
+                if_followup ENUM('Yes','No') DEFAULT 'No',
                 version INT DEFAULT 0,
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -33,7 +34,7 @@ try:
 except Error as e:
     print(e)
 
-def view_appointment():
+def view_all_appointment():
     cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
                 FROM appointments a
                 JOIN patients p ON a.patient_id = p.patient_id
@@ -43,7 +44,24 @@ def view_appointment():
     headers = [i[0] for i in cur.description]
     print(tabulate(data, headers = headers, tablefmt= 'pretty'))
 
-def book_appointment(edited_by, patient_id):
+def view_appointment(cpr_no):
+    cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON a.doctor_id = s.staff_id
+                WHERE a.appt_is_active = 'Yes' and p.cpr_no = %s""", (cpr_no,))
+    data = cur.fetchall()
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers = headers, tblefmt = 'pretty'))
+
+def book_appointment(edited_by, cpr_no):
+    cur.execute("""SELECT patient_id, patient_name FROM patients WHERE cpr_no = %s""", (cpr_no,))
+    patient = cur.fetchone()
+    if not patient:
+        print("No patient found with this CPR number.")
+        return
+    patient_id = patient[0]
+
     cur.execute("""SELECT item_id, item_name from lookup_code
                 WHERE category = 'Clinic' and item_if_active = 'Yes'""")
     clinics = cur.fetchall()
@@ -107,7 +125,14 @@ def book_appointment(edited_by, patient_id):
     appt_his_id = cur.lastrowid
     cur.execute('''UPDATE appointments SET appt_his_id = %s WHERE appt_id = %s''', (appt_his_id, appt_his_id))
 
-def update_appointment(edited_by, patient_id):
+def update_appointment(edited_by, cpr_no):
+    cur.execute("SELECT patient_id, patient_name FROM patients WHERE cpr_no = %s", (cpr_no,))
+    patient = cur.fetchone()
+    if not patient:
+        print("No patient found with this CPR number.")
+        return
+    patient_id = patient[0]
+
     cur.execute("""SELECT appt_id, appt_book_time, clinic FROM appointments
                 WHERE patient_id = %s and appt_if_active = 'Yes'""", (patient_id,))
     data = cur.fetchall()
@@ -185,9 +210,16 @@ def update_appointment(edited_by, patient_id):
                 appt_his_id, patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_paid_amount, version, edited_by)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''',(*old_data, edited_by))
     
-def delete_appointment(edited_by):
+def delete_appointment(edited_by, cpr_no):
+    cur.execute("SELECT patient_id, patient_name FROM patients WHERE cpr_no = %s", (cpr_no,))
+    patient = cur.fetchone()
+    if not patient:
+        print("No patient found with this CPR number.")
+        return
+    patient_id = patient[0]
+
     cur.execute("""SELECT appt_id, appt_book_time, clinic FROM appointments
-                WHERE patient_id = %s and appt_if_active = 'Yes'""")
+                WHERE patient_id = %s and appt_if_active = 'Yes'""", (patient_id,))
     data = cur.fetchall()
     header = [i[0] for i in cur.description]
     if not data:
@@ -208,12 +240,3 @@ def delete_appointment(edited_by):
             print("Enter only integers.")
     cur.execute('''UPDATE appointments SET appt_if_active = 'No', edited_by = %s
                 WHERE appt_id = %s''', (edited_by, appt_id))
-    
-def list_doctor_schedule(doctor_id):
-    cur.execute("""SELECT a.appt_id, p.patient_name, a.appt_book_time, a.cons_fee_paid, a.cons_paid_amount
-                FROM appointments a
-                JOIN patients p ON a.patient_id = p.patient_id
-                WHERE a.doctor_id = %s AND a.appt_is_active = 'Yes'""", (doctor_id,))
-    data = cur.fetchall()
-    headers = [i[0] for i in cur.description]
-    print(tabulate(data, headers = headers, tablefmt= 'pretty'))

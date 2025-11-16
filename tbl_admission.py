@@ -93,16 +93,32 @@ def add_admission(edited_by, cpr_no):
             print("Enter only Yes or No.")
     
     cur.execute("""INSERT INTO tbl_admission (patient_id, adm_date, adm_doctor, ward, payment, edited_by)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                VALUES (%s, %s, %s, %s, %s, %s)""",
                 (patient_id, adm_book_time, staff_id, bed_id, payment.capitalize(), edited_by))
     adm_his_id = cur.lastrowid
     cur.execute("""UPDATE tbl_admission SET adm_his_id = %s WHERE adm_id = %s""", (adm_his_id, adm_his_id))
     print(f"Patient {patient_name} admitted successfully to bed {bed_id}.")
 
-def view_admissions():
-    cur.execute('''SELECT p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a INNER JOIN patients p ON a.patient_id = p.patient_id 
-                LEFT JOIN tbl_discharge d ON a.adm_id = d.adm_id INNER JOIN lookup_code l ON a.ward = l.item_id 
+def view_all_admissions():
+    cur.execute('''SELECT p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a
+                INNER JOIN patients p ON a.patient_id = p.patient_id 
+                LEFT JOIN tbl_discharge d ON a.adm_id = d.adm_id
+                INNER JOIN lookup_code l ON a.ward = l.item_id 
                 WHERE d.discharge_date IS NULL''')
     data = cur.fetchall()
     headers = [i[0] for i in cur.description]
-    print(tabulate(headers = headers, tablefmt = 'pretty'))
+    print(tabulate(data,headers = headers, tablefmt = 'pretty'))
+
+def view_admission(cpr_no):
+    cur.execute('''SELECT p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a
+                INNER JOIN patients p ON a.patient_id = p.patient_id 
+                LEFT JOIN tbl_discharge d ON a.adm_id = d.adm_id
+                INNER JOIN lookup_code l ON a.ward = l.item_id 
+                WHERE d.discharge_date IS NULL
+                AND p.cpr_no = %s''', (cpr_no,))
+    data = cur.fetchall()
+    if not data:
+        print("Could not find any admissions.")
+        return
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers=headers, tablefmt='pretty'))

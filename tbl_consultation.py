@@ -127,12 +127,13 @@ def add_consultation(edited_by, cpr_no):
     cons_his_id = cons_id
     cur.execute('''UPDATE tbl_consultation SET cons_his_id = %s WHERE cons_id = %s''', (cons_his_id, cons_his_id))
 
+    if medication == 'yes':
+        prescribe_medication(cons_id, edited_by)
+
     if discharge_flag:
         cur.execute('''UPDATE appointments 
                        SET appt_if_active = 'No', edited_by = %s 
                        WHERE appt_id = %s''', (edited_by, appt_id))
-        if medication == 'yes':
-            prescribe_medication(edited_by)
     else:
         cur.execute('''INSERT INTO tbl_consultationF 
                        (cons_id, discharged, medication, edited_by)
@@ -147,8 +148,7 @@ def manage_followup(edited_by, cpr_no):
         JOIN appointments a ON c.appt_id = a.appt_id
         JOIN patients p ON a.patient_id = p.patient_id
         JOIN staff s ON a.doctor_id = s.staff_id
-        WHERE p.cpr_no = %s
-    ''', (cpr_no,))
+        WHERE p.cpr_no = %s''', (cpr_no,))
     
     data = cur.fetchall()
     if not data:
@@ -179,31 +179,71 @@ def manage_followup(edited_by, cpr_no):
     diagnosis = input("Enter diagnosis notes : ")
 
     while True:
-        admission_to_ward = input("Admit patient to ward? (Yes/No) : ").lower()
-        if admission_to_ward in ('yes', 'no'):
+        followup = input("Follow needed? (Yes/No):").lower()
+        if followup in ('yes','no'):
             break
         print("Enter only Yes or No.")
+
+    admission_to_ward = 'no'
+
+    if followup == 'yes':
+        while True:
+            admission_to_ward = input("Admit patient to ward? (Yes/No) : ").lower()
+            if admission_to_ward in ('yes', 'no'):
+                break
+            print("Enter only Yes or No.")
+
     if admission_to_ward == 'no':
         discharged = 'yes'
-        cur.execute('''UPDATE tbl_consultation SET discharged = 'Yes' where cons_id = %s''', (cons_id,))
-        cur.execute('''UPDATE appointments set appt_is_active = 'No' where appt_id = %s''', (appt_id,))
+        cur.execute('''UPDATE tbl_consultation SET discharged = 'Yes' WHERE cons_id = %s''', (cons_id,))
+        cur.execute('''UPDATE appointments SET appt_is_active = 'No' WHERE appt_id = %s''', (appt_id,))
+
     while True:
         medication = input("Prescribe medication? (Yes/No): ").lower()
         if medication in ('yes', 'no'):
             break
         print("Enter only 'Yes' or 'No'.")
     if medication == 'yes':
-        prescribe_medication(edited_by)
+        prescribe_medication(cons_id, edited_by)
 
-    cur.execute('''UPDATE tbl_consultationF SET lab_result = %s, imaging_result= %s, diagnosis = %s,
-                diagnosis = %s, discharged = %s, medication = %s, admission_to_ward = %s, edited_by = %s
-                WHERE cons_id = %s''', 
-                (cons_id, lab_result, imaging_result, diagnosis, 'Yes' if discharged.lower() == 'yes' else 'No', 
-                 medication.capitalize(), admission_to_ward.capitalize(), edited_by))
-    consF_id = cur.lastrowid
-    consF_his_id = consF_id
-    cur.execute('''UPDATE tbl_consultationsF set consF_his_id = %s where consF_id = %s''', (consF_his_id, consF_id))
+    cur.execute('''UPDATE tbl_consultationF 
+                SET lab_result = %s, imaging_result = %s, diagnosis = %s,
+                discharged = %s, medication = %s, admission_to_ward = %s, edited_by = %s
+                WHERE cons_id = %s''',
+                (lab_result, imaging_result, diagnosis,
+                 'Yes' if discharged.lower() == 'yes' else 'No',
+                 medication.capitalize(), admission_to_ward.capitalize(),
+                 edited_by, cons_id))
+
+    cur.execute("SELECT consF_id FROM tbl_consultationF WHERE cons_id = %s", (cons_id,))
+    result = cur.fetchone()
+    consF_id = result[0]
+
+    cur.execute('''UPDATE tbl_consultationF SET consF_his_id = %s WHERE consF_id = %s''', (consF_id, consF_id))
 
     print("Follow-up consultation record added successfully.")
     if admission_to_ward == 'yes':
-        print("Triggering admission process...")
+        cur.execute('''UPDATE tbl_consultationF SET admission_to_ward = 'Yes', edited_by = %s
+                    WHERE consF_id = %s''', (edited_by, consF_id))
+        
+def view_consultation(cpr_no):
+    cur.execute("""SELECT c.cons_id, c.cons_his_id, c.appt_id, s.staff_name AS doctor_name,
+                l.item_name AS clinic_name, c.cons_date, c.complaints, c.cons_notes,
+                c.lab_test, c.imaging_test, c.discharged, c.medication
+                FROM tbl_consultation c
+                JOIN appointments a ON c.appt_id = a.appt_id
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON c.doctor_id = s.staff_id
+                JOIN lookup_code l ON c.clinic = l.item_id
+                WHERE p.cpr_no = %s""", (cpr_no,))
+    cons = cur.fetchall()
+    if not cons:
+        print("No consultations found for this patient.")
+        return
+    headers = [i[0] for i in cur.description]
+
+    cur.execute("SELECT patient_name FROM patients WHERE cpr_no = %s", (cpr_no,))
+    patient_name = cur.fetchone()[0]
+
+    print(f"CPR number : {cpr_no} Patient Name : {patient_name}")
+    print(tabulate(cons, headers=headers, tablefmt="pretty"))

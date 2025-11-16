@@ -35,155 +35,101 @@ try:
 except Error as e:
     print(e)
 
-def add_inpatient_procedure(edited_by, adm_id=None):
-    """Add a procedure record for an inpatient"""
-    try:
-        # Get active admissions if adm_id not provided
-        if not adm_id:
-            cur.execute("""
-            SELECT a.adm_id, p.patient_name, p.cpr_no, a.adm_date, s.staff_name
-            FROM tbl_admission a
-            JOIN patients p ON a.patient_id = p.patient_id
-            JOIN staff s ON a.adm_doctor = s.staff_id
-            WHERE a.adm_id NOT IN (
-                SELECT adm_id FROM tbl_discharge WHERE dis_id IS NOT NULL
-            )
-            ORDER BY a.adm_date DESC
-            """)
-            
-            admissions = cur.fetchall()
-            if not admissions:
-                print("No active admissions.")
-                return
-            
-            print("Active Admissions:")
-            headers = [i[0] for i in cur.description]
-            print(tabulate(admissions, headers=headers, tablefmt='pretty'))
-            
-            while True:
-                try:
-                    adm_id = int(input("Enter admission ID: "))
-                    if adm_id in [i[0] for i in admissions]:
-                        break
-                    else:
-                        print("Invalid admission ID.")
-                except ValueError:
-                    print("Enter only integers.")
-        
-        # Get procedures from lookup_code
-        cur.execute("""
-        SELECT item_id, item_name FROM lookup_code 
-        WHERE item_category='SurgicalProcedure' AND item_if_active='Yes'
-        """)
-        
-        procedures = cur.fetchall()
-        if not procedures:
-            print("No procedures available.")
-            return
-        
-        print("\nAvailable Procedures:")
-        for proc in procedures:
-            print(f"{proc[0]}. {proc[1]}")
-        
-        while True:
-            try:
-                procedure_id = int(input("Enter procedure ID: "))
-                if procedure_id in [i[0] for i in procedures]:
-                    break
-                else:
-                    print("Invalid procedure ID.")
-            except ValueError:
-                print("Enter only integers.")
-        
-        # Get staff members
-        cur.execute("SELECT staff_id, staff_name, designation FROM staff WHERE is_active='Yes'")
-        staff_list = cur.fetchall()
-        
-        print("\nAvailable Staff:")
-        headers = ['ID', 'Name', 'Designation']
-        print(tabulate(staff_list, headers=headers, tablefmt='pretty'))
-        
-        while True:
-            try:
-                doctor_id = int(input("Enter doctor's staff ID: "))
-                nurse_id = int(input("Enter nurse's staff ID: "))
-                if doctor_id in [i[0] for i in staff_list] and nurse_id in [i[0] for i in staff_list]:
-                    break
-                else:
-                    print("Could not find staff IDs. Try again.")
-            except ValueError:
-                print("Enter only integers.")
-        
-        while True:
-            try:
-                date_input = input("Enter date and time (YYYY-MM-DD HH:MM:SS): ")
-                date_of_procedure = datetime.strptime(date_input, "%Y-%m-%d %H:%M:%S")
-                break
-            except ValueError:
-                print("Invalid date and time format. Try YYYY-MM-DD HH:MM:SS.")
-        
-        while True:
-            payment_done = input("Payment done (Yes/No): ").lower()
-            if payment_done in ('yes', 'no'):
-                payment_done = payment_done.capitalize()
-                break
-            print("Enter only Yes or No.")
-        
-        while True:
-            consumables_paid = input("Consumables paid (Yes/No): ").lower()
-            if consumables_paid in ('yes', 'no'):
-                consumables_paid = consumables_paid.capitalize()
-                break
-            print("Enter only Yes or No.")
-        
-        # Insert procedure record
-        cur.execute("""
-        INSERT INTO inpatient_procedures 
-        (adm_id, procedure_id, date_of_procedure, doctor_id, nurse_id, 
-         payment_done, consumables_paid, edited_by)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (adm_id, procedure_id, date_of_procedure, doctor_id, nurse_id,
-              payment_done, consumables_paid, edited_by))
-        
-        ipp_id = cur.lastrowid
-        cur.execute("UPDATE inpatient_procedures SET ipp_his_id=%s WHERE ipp_id=%s", (ipp_id, ipp_id))
-        
-        conn.commit()
-        print("Inpatient procedure recorded successfully.")
-        
-    except Error as e:
-        print(f" Database Error: {e}")
+def add_inpatient_procedure(edited_by, cpr_no):
+    cur.execute("""SELECT a.adm_id, p.patient_name, p.cpr_no, a.adm_date, s.staff_name
+                FROM tbl_admission a JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON a.adm_doctor = s.staff_id WHERE p.cpr_no = %s 
+                AND a.adm_id NOT IN (SELECT adm_id FROM tbl_discharge)""", (cpr_no,))
+    admission = cur.fetchone()
+    if not admission:
+        print("No active admission found for this patient.")
+        return
 
-def view_procedures(edited_by=None):
-    """View all inpatient procedures"""
-    try:
-        query = """
-        SELECT 
-            ip.ipp_id AS ID,
-            p.patient_name AS Patient,
-            lc.item_name AS Procedure,
-            ip.date_of_procedure AS Date,
-            s1.staff_name AS Doctor,
-            s2.staff_name AS Nurse,
-            ip.payment_done AS Payment,
-            ip.consumables_paid AS Consumables
-        FROM inpatient_procedures ip
-        JOIN tbl_admission a ON ip.adm_id = a.adm_id
-        JOIN patients p ON a.patient_id = p.patient_id
-        JOIN lookup_code lc ON ip.procedure_id = lc.item_id
-        JOIN staff s1 ON ip.doctor_id = s1.staff_id
-        JOIN staff s2 ON ip.nurse_id = s2.staff_id
-        ORDER BY ip.date_of_procedure DESC
-        """
+    adm_id = admission[0]
+    patient_name = admission[1]
+    adm_date = admission[3]
+    doctor_name = admission[4]
+
+    print(f"Patient: {patient_name}, Admission Date: {adm_date}, Doctor: {doctor_name}")
         
-        cur.execute(query)
-        rows = cur.fetchall()
-        
-        if rows:
-            headers = [i[0] for i in cur.description]
-            print(tabulate(rows, headers=headers, tablefmt='pretty'))
-        else:
-            print("No procedures found.")
-        
-    except Error as e:
-        print(f" Database Error: {e}")
+    cur.execute("""SELECT item_id, item_name FROM lookup_code WHERE item_category='SurgicalProcedure' AND item_if_active='Yes'""")
+    
+    procedures = cur.fetchall()
+    print("\nAvailable Procedures : ")
+    for i in procedures:
+        print(f"{i[0]}. {i[1]}")
+    
+    while True:
+        try:
+            procedure_id = int(input("Enter procedure ID: "))
+            if procedure_id in [i[0] for i in procedures]:
+                break
+            else:
+                print("Invalid procedure ID.")
+        except ValueError:
+            print("Enter only integers.")
+
+    cur.execute("SELECT staff_id, staff_name, designation FROM staff WHERE is_active='Yes'")
+    staff_list = cur.fetchall()
+
+    print("\nAvailable Staff:")
+    headers = ['ID', 'Name', 'Designation']
+    print(tabulate(staff_list, headers=headers, tablefmt='pretty'))
+
+    while True:
+        try:
+            doctor_id = int(input("Enter doctor's staff ID: "))
+            nurse_id = int(input("Enter nurse's staff ID: "))
+            if doctor_id in [i[0] for i in staff_list] and nurse_id in [i[0] for i in staff_list]:
+                break
+            else:
+                print("Could not find staff IDs. Try again.")
+        except ValueError:
+            print("Enter only integers.")
+    
+    while True:
+        try:
+            date_input = input("Enter date and time (YYYY-MM-DD HH:MM:SS): ")
+            date_of_procedure = datetime.strptime(date_input, "%Y-%m-%d %H:%M:%S")
+            break
+        except ValueError:
+            print("Invalid date and time format. Try YYYY-MM-DD HH:MM:SS.")
+    
+    while True:
+        payment_done = input("Payment done (Yes/No): ").lower()
+        if payment_done in ('yes', 'no'):
+            payment_done = payment_done.capitalize()
+            break
+        print("Enter only Yes or No.")
+    
+    while True:
+        consumables_paid = input("Consumables paid (Yes/No): ").lower()
+        if consumables_paid in ('yes', 'no'):
+            consumables_paid = consumables_paid.capitalize()
+            break
+        print("Enter only Yes or No.")
+    
+    cur.execute("""
+                INSERT INTO inpatient_procedures (adm_id, procedure_id, date_of_procedure, doctor_id, nurse_id, payment_done, consumables_paid, edited_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                (adm_id, procedure_id, date_of_procedure, doctor_id, nurse_id, payment_done, consumables_paid, edited_by))
+    ipp_id = cur.lastrowid
+    cur.execute("UPDATE inpatient_procedures SET ipp_his_id=%s WHERE ipp_id=%s", (ipp_id, ipp_id))
+    conn.commit()
+    print("Inpatient procedure recorded successfully.")
+
+def view_procedures(cpr_no):
+    cur.execute('''SELECT ip.ipp_id, ip.adm_id, l.item_name AS procedure_name, ip.date_of_procedure,
+                d.staff_name AS doctor_name, n.staff_name AS nurse_name, ip.payment_done, ip.consumables_paid
+                FROM inpatient_procedures ip
+                INNER JOIN tbl_admission a ON ip.adm_id = a.adm_id
+                INNER JOIN patients p ON a.patient_id = p.patient_id
+                LEFT JOIN staff d ON ip.doctor_id = d.staff_id
+                LEFT JOIN staff n ON ip.nurse_id = n.staff_id
+                INNER JOIN lookup_code l ON ip.procedure_id = l.item_id
+                WHERE p.cpr_no = %s''', (cpr_no,))
+    data = cur.fetchall()
+    if not data:
+        print("Could not find any procedures done.")
+    headers = [i[0] for i in cur.description]
+    print(tabulate(data, headers=headers, tablefmt='pretty'))

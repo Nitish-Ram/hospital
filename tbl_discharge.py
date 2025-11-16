@@ -34,9 +34,7 @@ except Error as e:
     print(e)
 
 def record_discharge(edited_by):
-    """Record patient discharge from hospital"""
     try:
-        # Get active admissions
         cur.execute("""
         SELECT a.adm_id, p.patient_name, p.cpr_no, a.adm_date, s.staff_name
         FROM tbl_admission a

@@ -86,7 +86,10 @@ try:
                 ('Kidney surgery','SurgicalProcedure','Yes',0),
                 ('Bone surgery','SurgicalProcedure','Yes',0),
                 ('Angioplasty','SurgicalProcedure','Yes',0),
-                ('Endoscopy','SurgicalProcedure','Yes',0)
+                ('Endoscopy','SurgicalProcedure','Yes',0),
+                ('Bed_1, 'Bed', 'Yes', 0),
+                ('Bed_2, 'Bed', 'Yes', 0),
+                ('Bed_3, 'Bed', 'Yes', 0)}
                 """)
     conn.commit()
 except Error as e:

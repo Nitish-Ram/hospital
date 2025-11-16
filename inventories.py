@@ -49,60 +49,33 @@ except Error as e:
 
 def add_inventory(edited_by):
     try:
-
         inv_name = input("Enter Inventory Item Name: ")
         inv_category = input("Enter Category : ")
-
         query = """
         INSERT INTO inventories (inv_name, inv_category, edited_by)
         VALUES (%s, %s, %s)
         """
-
         cur.execute(query, ( inv_name, inv_category, edited_by))
-
         inv_id=cur.lastrowid
         inv_his_id = inv_id
         cur.execute("UPDATE inventories SET inv_his_id=%s",(inv_his_id))
-        
         conn.commit()
-
         print(" Inventory item added successfully!")
 
     except Exception as e:
         print(" Error adding inventory:", e)
 
 def view_all_inventories():
-    #for admins
     try:    
         cur.execute("SELECT * FROM inventories WHERE inv_if_active='Yes'")
         rows = cur.fetchall()
-
         if rows:
             headers = [i[0] for i in cur.description]
             print(tabulate(rows, headers=headers, tablefmt="pretty"))
         else:
             print(" No inventory items found.")
-
     except Exception as e:
         print(" Error viewing inventories:", e)
-
-
-def search_inventory_by_name():
-    #for docs?
-    try:
-
-        name = input("Enter item name to search: ")
-        cur.execute("SELECT * FROM inventories WHERE inv_name LIKE %s and inv_if_active='Yes'", ('%' + name + '%',))
-        rows = cur.fetchall()
-
-        if rows:
-            headers = [i[0] for i in cur.description]
-            print(tabulate(rows, headers=headers, tablefmt="pretty"))
-        else:
-            print(" No matching items found.")
-
-    except Exception as e:
-        print(" Error searching inventory:", e)
 
 def update_inventory(edited_by):
     try:
@@ -120,27 +93,27 @@ def update_inventory(edited_by):
         
         cur.execute("SELECT * FROM inventories WHERE inv_id=%s",(inv_id,))
         old_data=cur.fetchone()
-        new_data=list(old_data[1:-2]) # taking req values (excluding defaults)
+        new_data=list(old_data[1:-2])
         new_data[-1] += 1
 
         while True:
             choice = input("Field to be updated (1.name,2.category,3.both): ")
             if choice == '1':
                 inv_name = input("New Item Name: ")
-                new_data[1]=inv_name # updating changes
+                new_data[1]=inv_name
             elif choice == '2':
                 inv_category = input("New Category: ")
-                new_data[2]=inv_category # updating changes
+                new_data[2]=inv_category
             elif choice=='3':
                 inv_name = input("New Item Name: ")
                 inv_category = input("New Category: ")
-                new_data[1],new_data[2]=inv_name,inv_category #updating changes
+                new_data[1],new_data[2]=inv_name,inv_category
             else:
                 print("enter a valid choice")
                 continue
             break
         
-        cur.execute("UPDATE inventories SET inv_if_active='No' WHERE inv_id = %s", (inv_id,)) #setting prev as inactive
+        cur.execute("UPDATE inventories SET inv_if_active='No' WHERE inv_id = %s", (inv_id,))
 
         cur.execute('''INSERT INTO inventories (inv_his_id,inv_name, inv_category,inv_if_active,version, edited_by)
                     VALUES (%s,%s,%s,%s,%s,%s)''',
