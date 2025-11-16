@@ -152,3 +152,29 @@ def update_medication(edited_by, cpr_no):
                 (med_his_id, *new_data, new_version, edited_by))
     conn.commit()
     print("Medication updated successfully.")
+
+def view_medications(cpr_no):
+    type = input("View medications for 1.Consultation 2.Admission").strip()
+    if type == '1':
+        cur.execute('''SELECT p.patient_name,m.cons_id,m.medicine, m.quantity, m.dose, m.instruction)
+                        FROM medication m
+                        JOIN tbl_consultation c ON m.cons_id = c.cons_id
+                        JOIN appointments a ON c.appt_id = a.appt_id
+                        JOIN patients p ON a.patient_id = p.patient_id
+                        WHERE p.cpr_no = %s AND m.medication_is_active = 'Yes'
+                        AND adm_id is NULL ''', (cpr_no,))
+        data=cur.fetchall()
+        headers = [i[0] for i in cur.description]
+        print(tabulate(data, headers = headers, tablefmt = 'pretty'))
+        
+    elif type == '2':
+        cur.execute('''SELECT p.patient_name,m.adm_id,m.medicine, m.quantity, m.dose, m.instruction
+                        FROM medication m
+                        JOIN tbl_admission ad ON m.adm_id = ad.adm_id
+                        JOIN patients p ON ad.patient_id = p.patient_id
+                        WHERE p.cpr_no = %s AND m.medication_is_active = 'Yes' ''', (cpr_no,))
+        data=cur.fetchall()
+        headers = [i[0] for i in cur.description]
+        print(tabulate(data, headers = headers, tablefmt = 'pretty'))
+    else:
+        print("Invalid choice")
