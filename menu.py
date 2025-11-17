@@ -61,7 +61,7 @@ def staff_login():
     #print(f"\n{WARNING}Test run started.{RESET}\n")
     while True:
         user_name = input(f"{CYAN}Username: {RESET}").strip()
-        passcode = getpass(f"{CYAN}Passcode: {RESET}")
+        passcode = getpass(f"{CYAN}Passcode: HIDDEN{RESET}")
         if user_name == 'attack helicopter' and passcode == '6767':
             access_level = int(input("Enter access level : "))
             return 6767, access_level   
@@ -106,12 +106,19 @@ def admin_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         ch = input(f"{YELLOW}Choice: {RESET}").strip()
         if ch == '1':
-            print(f"\n{MENU_TITLE}1) Create Staff  2) Update Staff{RESET}")
+            cur.fetchall()
+            print(f"\n{MENU_TITLE}1) Create Staff  2) Update Staff 3) View Staff{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 create_staff(staff_id)
             elif c == '2':
                 update_staff(staff_id)
+            elif c == '3':
+                cur.execute('''SELECT staff_id, staff_name, cpr_no FROM staff''')
+                data = cur.fetchall()
+                header = [i[0] for i in cur.description]
+                print(tabulate(data, headers = header, tablefmt= 'pretty'))
+                sleep(1)
         elif ch == '2':
             print(f"\n{MENU_TITLE}1) Add  2) Update  3) Remove  4) View by category{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
@@ -145,7 +152,8 @@ def admin_menu(staff_id):
             print(f"\n{MENU_TITLE}1) View appointments  2) View admissions  3) View discharges{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
-                view_appointment()
+                cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
+                view_appointment(cpr)
                 sleep(1)
             elif c == '2':
                 view_all_admissions()
@@ -203,13 +211,13 @@ def doctor_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            cur.execute("""SELECT a.appt_id, a.patient_id, p.patient_name, p.cpr, a.clinic, a.appt_book_time, s.staff_name
+            cur.execute("""SELECT a.appt_id, a.patient_id, p.patient_name, p.cpr_no, a.clinic, a.appt_book_time
                 FROM appointments a
                 JOIN patients p ON a.patient_id = p.patient_id
                 WHERE a.appt_is_active = 'Yes' and a.doctor_id=%s""", (staff_id,))
             data = cur.fetchall()
             headers = [i[0] for i in cur.description]
-            print(tabulate(data, headers = headers, tblefmt = 'pretty'))
+            print(tabulate(data, headers = headers, tablefmt = 'pretty'))
         elif c == '2':
             cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
             add_consultation(staff_id, cpr)

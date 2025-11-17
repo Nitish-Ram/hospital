@@ -24,7 +24,7 @@ try:
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
     cur.execute("""INSERT INTO lookup_code ( item_name, item_category, item_if_active, version)
-                VALUES
+                VALUES(
                 ('Active', 'patient_status', 'Yes',0) ,
                 ('Inactive', 'patient_status', 'Yes',0),
                 ('Deceased', 'patient_status', 'Yes',0),
@@ -87,10 +87,9 @@ try:
                 ('Bone surgery','SurgicalProcedure','Yes',0),
                 ('Angioplasty','SurgicalProcedure','Yes',0),
                 ('Endoscopy','SurgicalProcedure','Yes',0),
-                ('Bed_1, 'Bed', 'Yes', 0),
-                ('Bed_2, 'Bed', 'Yes', 0),
-                ('Bed_3, 'Bed', 'Yes', 0)}
-                """)
+                ('Bed_1', 'Bed', 'Yes', 0),
+                ('Bed_2', 'Bed', 'Yes', 0),
+                ('Bed_3', 'Bed', 'Yes', 0))""")
     conn.commit()
 except Error as e:
     print(e)
