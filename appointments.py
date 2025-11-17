@@ -52,7 +52,7 @@ def view_appointment(cpr_no):
                 WHERE a.appt_is_active = 'Yes' and p.cpr_no = %s""", (cpr_no,))
     data = cur.fetchall()
     headers = [i[0] for i in cur.description]
-    print(tabulate(data, headers = headers, tblefmt = 'pretty'))
+    print(tabulate(data, headers = headers, tablefmt = 'pretty'))
 
 def book_appointment(edited_by, cpr_no):
     cur.execute("""SELECT patient_id, patient_name FROM patients WHERE cpr_no = %s""", (cpr_no,))
@@ -120,7 +120,7 @@ def book_appointment(edited_by, cpr_no):
 
     cur.execute('''INSERT INTO appointments (
                 patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_fee_amount, edited_by) 
-                VALUES (%s, %s, %s, %s, %s, %s)''',
+                VALUES (%s, %s, %s, %s, %s, %s, %s)''',
                 (patient_id, doctor_id, clinic_id, appt_book_time, cons_fee_paid.capitalize(), cons_fee_amount, edited_by))
     appt_his_id = cur.lastrowid
     cur.execute('''UPDATE appointments SET appt_his_id = %s WHERE appt_id = %s''', (appt_his_id, appt_his_id))

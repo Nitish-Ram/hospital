@@ -183,7 +183,7 @@ def update_staff(edited_by):
                 print("Not valid choice. Try again.")
         except ValueError:
             print("Enter valid integer.")
-    new_data = list(old_data[2:13])
+    new_data = list(old_data[2:12])
     if choice == 1 or choice == 8:
         while True:
             try:
@@ -216,7 +216,7 @@ def update_patient(edited_by):
         print("Patient not found.")
         return
     patient_his_id = old_data[1]
-    new_version = old_data[14] + 1
+    new_version = old_data[13] + 1
     print("Which field do you want to update?")
     print("\n1) CPR number\n2) Name\n3) DOB\n4) Email\n5) Phone number\n 6) Address\n7) Next-of-kin\n8) Relationship with 'Next-of-kin'\n9) Emergency contact")
     while True:
@@ -228,7 +228,7 @@ def update_patient(edited_by):
                 print("Not valid choice. Try again.")
         except ValueError:
             print("Enter a valid integer.")
-    new_data = list(old_data[2:12])
+    new_data = list(old_data[2:11])
     if choice == 1:
         while True:
             try:

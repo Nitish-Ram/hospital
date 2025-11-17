@@ -58,7 +58,7 @@ def add_inventory(edited_by):
         cur.execute(query, ( inv_name, inv_category, edited_by))
         inv_id=cur.lastrowid
         inv_his_id = inv_id
-        cur.execute("UPDATE inventories SET inv_his_id=%s",(inv_his_id))
+        cur.execute("UPDATE inventories SET inv_his_id=%s WHERE inv_id=%s",(inv_his_id, inv_id))
         conn.commit()
         print(" Inventory item added successfully!")
 

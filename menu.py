@@ -44,9 +44,9 @@ try:
         ssl_ca = 'certs/ca.pem'
         
     )
+    cur = conn.cursor(buffered=True)
     '''
     print("Connected.")
-    cur = conn.cursor(buffered=True)
     cur.execute("SHOW TABLES;")
     tables = cur.fetchall()
     print("Tables in your database:")
@@ -95,7 +95,6 @@ def admin_menu(staff_id):
         print(f"\n{MENU_TITLE}═══════════════════════════════{RESET}")
         print(f"{MENU_TITLE}       ADMIN MENU{RESET}")
         print(f"{MENU_TITLE}═══════════════════════════════{RESET}\n")
-        sleep(1)
         print(f"{CYAN} 1.{RESET} Staff management")
         print(f"{CYAN} 2.{RESET} Lookup codes")
         print(f"{CYAN} 3.{RESET} Inventory")
@@ -106,7 +105,6 @@ def admin_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         ch = input(f"{YELLOW}Choice: {RESET}").strip()
         if ch == '1':
-            cur.fetchall()
             print(f"\n{MENU_TITLE}1) Create Staff  2) Update Staff 3) View Staff{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
@@ -152,8 +150,14 @@ def admin_menu(staff_id):
             print(f"\n{MENU_TITLE}1) View appointments  2) View admissions  3) View discharges{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
-                cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
-                view_appointment(cpr)
+                cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON a.doctor_id = s.staff_id
+                WHERE a.appt_is_active = 'Yes' """)
+                data = cur.fetchall()
+                headers = [i[0] for i in cur.description]
+                print(tabulate(data, headers = headers, tablefmt = 'pretty'))
                 sleep(1)
             elif c == '2':
                 view_all_admissions()
@@ -295,7 +299,15 @@ def receptionist_menu(staff_id):
             pid = prompt_int('Enter patient ID: ')
             book_appointment(staff_id, pid)
         elif c == '2':
-            view_appointment()
+            cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
+                FROM appointments a
+                JOIN patients p ON a.patient_id = p.patient_id
+                JOIN staff s ON a.doctor_id = s.staff_id
+                WHERE a.appt_is_active = 'Yes' """)
+            data = cur.fetchall()
+            headers = [i[0] for i in cur.description]
+            print(tabulate(data, headers = headers, tablefmt = 'pretty'))
+            sleep(1)
         elif c == '3':
             pid = prompt_int('Enter patient ID: ')
             update_appointment(staff_id, pid)
