@@ -144,14 +144,7 @@ def admin_menu(staff_id):
             print(f"\n{MENU_TITLE}1) View appointments  2) View admissions  3) View discharges{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
-                cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
-                FROM appointments a
-                JOIN patients p ON a.patient_id = p.patient_id
-                JOIN staff s ON a.doctor_id = s.staff_id
-                WHERE a.appt_is_active = 'Yes' """)
-                data = cur.fetchall()
-                headers = [i[0] for i in cur.description]
-                print(tabulate(data, headers = headers, tablefmt = 'pretty'))
+                view_all_appointment()
                 sleep(1)
             elif c == '2':
                 view_all_admissions()
@@ -160,7 +153,7 @@ def admin_menu(staff_id):
                 generate_discharge_summary()
                 sleep(1)
         elif ch == '5':
-            print(f"\n{MENU_TITLE}1) Add charge  2) View charges  3) Update charge  4) Delete  5) Unpaid  6) Record payment{RESET}")
+            print(f"\n{MENU_TITLE}1) Add charge  2) View charges  3) Update charge  4) Unpaid  5) Record payment{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 add_charge(staff_id)
@@ -169,10 +162,8 @@ def admin_menu(staff_id):
             elif c == '3':
                 update_charge_status(staff_id)
             elif c == '4':
-                delete_charge()
-            elif c == '5':
                 get_unpaid_charges()
-            elif c == '6':
+            elif c == '5':
                 record_payment(staff_id)
         elif ch == '6':
             print(f"\n{MENU_TITLE}1) Total revenue  2) By category  3) By patient  4) Range{RESET}")
@@ -191,6 +182,22 @@ def admin_menu(staff_id):
             print(f'{ERROR}Invalid choice{RESET}')
 
 
+def patient_care_workflow(staff_id, cpr):
+    print(f"\n{MENU_TITLE}───────────────────────────────{RESET}")
+    while True:
+        discharged,test,cons_id=add_consultation(staff_id, cpr)
+        if test:
+            add_test_cons(staff_id, cons_id)
+        if discharged == 'yes':
+            break
+        discharged=manage_followup(staff_id, cpr)
+        if discharged == 'yes':
+            break
+        add_admission(staff_id, cpr)
+        add_inpatient_procedure(staff_id, cpr)
+        break
+    print(f"\n{MENU_TITLE}───────────────────────────────{RESET}")
+
 def doctor_menu(staff_id):
     while True:
         print(f"\n{MENU_TITLE}═══════════════════════════════{RESET}")
@@ -198,13 +205,11 @@ def doctor_menu(staff_id):
         print(f"{MENU_TITLE}═══════════════════════════════{RESET}\n")
         sleep(1)
         print(f"{CYAN}1.{RESET} View schedule")
-        print(f"{CYAN}2.{RESET} Add consultation")
-        print(f"{CYAN}3.{RESET} Manage follow-up")
-        print(f"{CYAN}4.{RESET} Prescribe medication")
-        print(f"{CYAN}5.{RESET} Admissions")
-        print(f"{CYAN}6.{RESET} Procedures")
-        print(f"{CYAN}7.{RESET} Tests")
-        print(f"{CYAN}8.{RESET} Discharge")
+        print(f"{CYAN}2.{RESET} Patient Care Workflow")
+        print(f"{CYAN}3.{RESET} View all admissions")
+        print(f"{CYAN}4.{RESET} admission procedures")
+        print(f"{CYAN}5.{RESET} Discharge patient")
+        print(f"{CYAN}6.{RESET} view test")
         print(f"{CYAN}0.{RESET} Logout")
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
@@ -217,60 +222,34 @@ def doctor_menu(staff_id):
             headers = [i[0] for i in cur.description]
             print(tabulate(data, headers = headers, tablefmt = 'pretty'))
         elif c == '2':
-            cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
-            add_consultation(staff_id, cpr)
+            cpr = input(f'{CYAN}Enter patient CPR: {RESET}').strip()
+            patient_care_workflow(staff_id, cpr)
         elif c == '3':
-            cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
-            manage_followup(staff_id, cpr)
-        elif c == '4':
-            prescribe_medication(staff_id)
-        elif c == '5':
-            print(f"\n{MENU_TITLE}1) Admit patient  2) View admissions  3) Patient admissions{RESET}")
-            sub = input(f"{YELLOW}> {RESET}").strip()
-            if sub == '1':
-                add_admission(staff_id)
-            elif sub == '2':
-                view_all_admissions()
-            elif sub == '3':
-                cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
-                view_admission(cpr)
-            else:
-                print(f'{ERROR}Invalid choice{RESET}')
-        elif c == '6':
-            print(f"\n{MENU_TITLE}1) Add procedure  2) View procedures{RESET}")
-            sub = input(f"{YELLOW}> {RESET}").strip()
-            if sub == '1':
-                adm = input(f'{CYAN}Enter admission ID (or leave blank to list admissions): {RESET}')
-                add_inpatient_procedure(staff_id, int(adm) if adm else None)
-            elif sub == '2':
-                view_procedures()
-            else:
-                print(f'{ERROR}Invalid choice{RESET}')
-        elif c == '7':
-            print(f"\n{MENU_TITLE}1) Add test  2) View tests  3) Update test  4) Delete test{RESET}")
-            sub = input(f"{YELLOW}> {RESET}").strip()
-            if sub == '1':
-                add_test(staff_id)
-            elif sub == '2':
-                view_tests()
-            elif sub == '3':
-                update_test(staff_id)
-            elif sub == '4':
-                delete_test()
-            else:
-                print(f'{ERROR}Invalid choice{RESET}')
-        elif c == '8':
-            print(f"\n{MENU_TITLE}1) Record discharge  2) Add discharge medication  3) Generate discharge summary{RESET}")
-            sub = input(f"{YELLOW}> {RESET}").strip()
-            if sub == '1':
-                record_discharge(staff_id)
-            elif sub == '2':
-                add_discharge_medication(staff_id)
-            elif sub == '3':
-                generate_discharge_summary()
-            else:
-                print(f'{ERROR}Invalid choice{RESET}')
+            view_all_admissions()
             sleep(1)
+        elif c == '4':
+            adm_id = prompt_int('Enter Admission ID: ')
+            print(f"\n{MENU_TITLE}1) Tests  2) View procedures{RESET}")
+            sub = input(f"{YELLOW}> {RESET}").strip()
+            if sub == '1':
+                ch=input(f"{CYAN}1.add tests 2.update tests 3.delete tests: {RESET}").strip().lower()
+                if ch=='1':
+                    add_test_adm(staff_id,adm_id) 
+                elif ch=='2':
+                    update_test(staff_id)
+                elif ch=='3':
+                    delete_test()
+                else:
+                    print(f'{ERROR}Invalid choice{RESET}')
+            elif sub == '2':
+                view_procedures(cpr)
+            else:
+                print(f'{ERROR}Invalid choice{RESET}')
+        elif c == '5':
+            cpr = input(f'{CYAN}Enter patient CPR to discharge: {RESET}').strip()
+            record_discharge(staff_id, cpr)
+        elif c == '6':
+            view_tests()
         elif c == '0':
             break
         else:
@@ -285,7 +264,7 @@ def receptionist_menu(staff_id):
         print(f"{CYAN}2.{RESET} View appointments")
         print(f"{CYAN}3.{RESET} Update appointment")
         print(f"{CYAN}4.{RESET} Cancel appointment")
-        print(f"{CYAN}5.{RESET} View patients")
+        print(f"{CYAN}5.{RESET} Patients")
         print(f"{CYAN}0.{RESET} Logout")
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
@@ -293,14 +272,14 @@ def receptionist_menu(staff_id):
             pid = prompt_int('Enter patient ID: ')
             book_appointment(staff_id, pid)
         elif c == '2':
-            cur.execute("""SELECT a.appt_id, p.patient_id, p.cpr_no, p.patient_name, a.doctor_id, a.clinic, a.appt_book_time, s.staff_name
-                FROM appointments a
-                JOIN patients p ON a.patient_id = p.patient_id
-                JOIN staff s ON a.doctor_id = s.staff_id
-                WHERE a.appt_is_active = 'Yes' """)
-            data = cur.fetchall()
-            headers = [i[0] for i in cur.description]
-            print(tabulate(data, headers = headers, tablefmt = 'pretty'))
+            sub=input(f"\n{MENU_TITLE}1) View by CPR  2) View all appointments{RESET}\n{YELLOW}> {RESET}").strip()
+            if sub=='1':    
+                cpr = input(f'{CYAN}Enter patient CPR: {RESET}').strip()
+                view_appointment(cpr)
+            elif sub=='2':
+                view_all_appointment()
+            else:
+                print(f'{ERROR}Invalid choice{RESET}')
             sleep(1)
         elif c == '3':
             pid = prompt_int('Enter patient ID: ')
@@ -346,19 +325,16 @@ def pharmacist_menu(staff_id):
         print(f"\n{MENU_TITLE}═══════════════════════════════{RESET}")
         print(f"{MENU_TITLE}      PHARMACIST MENU{RESET}")
         print(f"{MENU_TITLE}═══════════════════════════════{RESET}\n")
-        print(f"{CYAN}1.{RESET} Prescribe medication")
+        print(f"{CYAN}1.{RESET} Prescribe medication(admission)")
         print(f"{CYAN}2.{RESET} View medications")
-        print(f"{CYAN}3.{RESET} Update medication")
         print(f"{CYAN}0.{RESET} Logout")
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            prescribe_medication(staff_id)
+            prescribe_medication_adm(staff_id)
         elif c == '2':
             cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
             view_medications(cpr)
-        elif c == '3':
-            update_medication(staff_id)
         elif c == '0':
             break
         else:

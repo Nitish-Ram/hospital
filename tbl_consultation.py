@@ -140,6 +140,7 @@ def add_consultation(edited_by, cpr_no):
                        VALUES (%s, 'No', %s, %s)''',
                     (cons_id, medication.capitalize(), edited_by))
         print("Follow-up record created in tbl_consultationF.")
+    return discharge_flag,(imaging_test == 'yes' or lab_test == 'yes'),cons_id
 
 def manage_followup(edited_by, cpr_no):
     cur.execute('''
@@ -225,6 +226,7 @@ def manage_followup(edited_by, cpr_no):
     if admission_to_ward == 'yes':
         cur.execute('''UPDATE tbl_consultationF SET admission_to_ward = 'Yes', edited_by = %s
                     WHERE consF_id = %s''', (edited_by, consF_id))
+    return discharged
         
 def view_consultation(cpr_no):
     cur.execute("""SELECT c.cons_id, c.cons_his_id, c.appt_id, s.staff_name AS doctor_name,
