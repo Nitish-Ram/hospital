@@ -45,14 +45,8 @@ try:
         
     )
     cur = conn.cursor(buffered=True)
-    '''
     print("Connected.")
-    cur.execute("SHOW TABLES;")
-    tables = cur.fetchall()
-    print("Tables in your database:")
-    for t in tables:
-        print(t[0])
-    '''
+
 except Error as e:
     print("DB connection error:", e)
  
@@ -61,7 +55,7 @@ def staff_login():
     #print(f"\n{WARNING}Test run started.{RESET}\n")
     while True:
         user_name = input(f"{CYAN}Username: {RESET}").strip()
-        passcode = getpass(f"{CYAN}Passcode: HIDDEN{RESET}")
+        passcode = getpass(f"{CYAN}Passcode (HIDDEN) : {RESET}")
         if user_name == 'attack helicopter' and passcode == '6767':
             access_level = int(input("Enter access level : "))
             return 6767, access_level   
@@ -291,7 +285,7 @@ def receptionist_menu(staff_id):
         print(f"{CYAN}2.{RESET} View appointments")
         print(f"{CYAN}3.{RESET} Update appointment")
         print(f"{CYAN}4.{RESET} Cancel appointment")
-        print(f"{CYAN}5.{RESET} Patients")
+        print(f"{CYAN}5.{RESET} View patients")
         print(f"{CYAN}0.{RESET} Logout")
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()

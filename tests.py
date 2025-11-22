@@ -1,5 +1,6 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
+from datetime import datetime
 
 try:
     conn = connect(
@@ -15,8 +16,8 @@ try:
     cur.execute('''CREATE TABLE IF NOT EXISTS tests (
                 test_id INT AUTO_INCREMENT PRIMARY KEY,
                 test_his_id INT,
-                cons_id INT,
-                adm_id INT,
+                cons_id INT NULL,
+                adm_id INT NULL,
                 test_name INT,
                 fees_paid ENUM('Yes','No') DEFAULT 'No',
                 paid_amt VARCHAR(50),
@@ -34,16 +35,20 @@ try:
 except Error as e:
     print(e)
 
-def add_test(edited_by):
+def add_test_cons(edited_by, cons_id):
     try:
-        #for now
-        cons_id = input("Enter Consultation ID: ")
         test_name = input("Enter Test Name : ")
-        fees_paid = input("Fees Paid (Yes/No): ")
-        paid_amt = input("Enter Paid Amount: ")
-        payment_date = input("Enter Payment Date (YYYY-MM-DD): ")
-        receipt_no = input("Enter Receipt No: ")
-        test_result = input("Enter Test Result: ") 
+        fees_paid = input("Fees Paid (Yes/No) : ")
+        paid_amt = input("Enter Paid Amount : ")
+        while True:
+            payment_date = input("Enter Payment Date (YYYY-MM-DD): ")
+            try:
+                datetime.strptime(payment_date, "%Y-%m-%d")
+                break
+            except ValueError:
+                print("Invalid date format. Use YYYY-MM-DD.")
+        receipt_no = input("Enter Receipt No : ")
+        test_result = input("Enter Test Result : ") 
 
         query = '''
         INSERT INTO tests 
@@ -59,11 +64,39 @@ def add_test(edited_by):
 
     except Error as e:
         print(f" Database Error: {e}")
+def add_test_adm(edited_by, adm_id):
+    try:
+        test_name = input("Enter Test Name : ")
+        fees_paid = input("Fees Paid (Yes/No) : ")
+        paid_amt = input("Enter Paid Amount : ")
+        while True:
+            payment_date = input("Enter Payment Date (YYYY-MM-DD) : ")
+            try:
+                datetime.strptime(payment_date, "%Y-%m-%d")
+                break
+            except ValueError:
+                print("Invalid date format. Use YYYY-MM-DD.")
+        receipt_no = input("Enter Receipt No : ")
+        test_result = input("Enter Test Result : ") 
+        query = '''
+        INSERT INTO tests 
+        (adm_id, test_name, fees_paid, paid_amt, payment_date, receipt_no, test_result, edited_by)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        '''
+        cur.execute(query, (adm_id, test_name, fees_paid, paid_amt, payment_date, receipt_no, test_result, edited_by))
+        test_id=cur.lastrowid
+        cur.execute("UPDATE tests SET test_his_id=%s where test_id=%s",(test_id,test_id))
+        conn.commit()
+
+        print("Test record added successfully!")
+
+    except Error as e:
+        print(f" Database Error: {e}")
 
 def view_tests():
     try:
         while True:
-            ch=input("enter choice 1.search test 2.view all tests")
+            ch=input("Enter choice 1.Search test 2.View all tests")
             if ch=='1':
                 test_id = input("Enter Test ID: ")
                 cur.execute('''
@@ -91,26 +124,30 @@ def view_tests():
         print(f" Database Error: {e}")
 
 def update_test(edited_by):
-
     try:
         test_id = input("Enter Test ID: ")
-
         cur.execute("SELECT * FROM tests WHERE test_id=%s AND test_is_active='Yes'",(test_id,))
 
         old_data=cur.fetchone()
         new_data=list(old_data[1:-2])
-        new_data[-1]+=1 #version update
+        new_data[9] += 1
 
         while True:
-            ch=input("enter choice (1.update test result 2.payment update")
+            ch=input("Enter choice 1. Update test result 2. Payment update : ")
             if ch=='1':
                 new_result = input("Enter New Test Result: ")
-                new_data[-3]=new_result
+                new_data[7]=new_result
             elif ch=='2':
                 paid_amt = input("Enter Paid Amount: ")
-                payment_date = input("Enter Payment Date (YYYY-MM-DD): ")
+                while True:
+                    payment_date = input("Enter Payment Date (YYYY-MM-DD): ")
+                    try:
+                        datetime.strptime(payment_date, "%Y-%m-%d")
+                        break
+                    except ValueError:
+                        print("Invalid date format. Use YYYY-MM-DD.")
                 receipt_no = input("Enter Receipt Number: ")
-                new_data[5],new_data[6],new_data[7]=paid_amt,payment_date,receipt_no
+                new_data[4],new_data[5],new_data[6]=paid_amt,payment_date,receipt_no
             else:
                 print("invalid input")
                 continue
@@ -128,12 +165,9 @@ def update_test(edited_by):
         print(f" Database Error: {e}")
 
 def delete_test():
-    #there is no set active
     try:
         test_id = input("Enter Test ID: ")
-
         cur.execute("UPDATE tests SET test_is_active='No' WHERE test_id=%s",(test_id,))
         conn.commit()
-
     except Error as e:
         print(f"Database Error: {e}")

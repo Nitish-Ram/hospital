@@ -54,9 +54,11 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
-    '''Insert into dbo.patients (cpr_no, Patient_name,  Contact_Number, DOB, next_of_kin, relationship, Emergency_contact) values '980652332' ,'SANA ISA YUSUF', '39802379', 'BUQAIS', '1998-06-06','Sister', '35100089';
-Insert into dbo.patients (cpr_no, Patient_name,  Contact_Number, DOB, next_of_kin, relationship, Emergency_contact) values '880795202' ,'NADIA AHMED', '36802521', 'MOHAMED', '1988-07-07','Father', '34804231';
-Insert into dbo.patients (cpr_no, Patient_name,  Contact_Number, DOB, next_of_kin, relationship, Emergency_contact) values '531209451' ,'MARIAPPAN SAVARIRAJ', '39480964', 'MANI', '1953-12-12','son', '39802374';'''
+    '''INSERT INTO patients (cpr_no, Patient_name,  Contact_Number, DOB, next_of_kin, relationship, Emergency_contact) VALUES 
+    ('980652332' ,'SANA ISA YUSUF', '39802379', 'BUQAIS', '1998-06-06','Sister', '35100089'),
+    ('880795202' ,'NADIA AHMED', '36802521', 'MOHAMED', '1988-07-07','Father', '34804231'),
+    ('531209451' ,'MARIAPPAN SAVARIRAJ', '39480964', 'MANI', '1953-12-12','son', '39802374')'''
+
 except Error as e:
     print(e)
 

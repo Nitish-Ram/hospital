@@ -1,5 +1,6 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
+from datetime import datetime
 
 try:
     conn = connect(
@@ -114,15 +115,21 @@ def update_charge_status(edited_by):
             print("Charge not found.")
             return
         new_data=list(old_data[1:-2])
-        new_data[-1]+=1 # version update
+        new_data[-1]+=1
 
         while True:
-            ch=input("what to change?(1.category, 2.date, 3.quantity, 4.payment_type, 5.note): ")
+            ch=input("Enter category to change 1.Payment category, 2.Date, 3.Quantity, 4.Payment type, 5.Notes : ")
             if ch=='1':
                 payment_category = input("Enter Payment Category : ")
                 new_data[3]=payment_category
             elif ch=='2':
-                payment_date = input("Enter Payment Date : ")
+                while True:
+                    payment_date = input("Enter Valid Until (YYYY-MM-DD): ")
+                    try:
+                        datetime.strptime(payment_date, "%Y-%m-%d")
+                        break
+                    except ValueError:
+                        print("Invalid date format. Enter in YYYY-MM-DD format.")
                 new_data[4]=payment_date
             elif ch=='3':
                 item_quantity = input("Enter Quantity: ")
@@ -145,17 +152,6 @@ def update_charge_status(edited_by):
         """,(*new_data, edited_by, int(charge_id)))
         conn.commit()
         print("Charge updated successfully.")
-
-    except Error as e:
-        print(f" Database Error: {e}")
-
-def delete_charge():
-    try:
-        #u dint add things in table so idk man
-        charge_id = input("Enter Charge ID: ")
-
-        cur.execute("DELETE FROM charges WHERE charge_id = %s", (charge_id,))
-        conn.commit()
 
     except Error as e:
         print(f" Database Error: {e}")
@@ -210,7 +206,6 @@ def record_payment(edited_by):
             print("Charge not found.")
             return
         
-        # Get paid status ID from lookup_code
         cur.execute("SELECT item_id FROM lookup_code WHERE item_name='Paid' AND item_category='charge_status'")
         paid_status = cur.fetchone()
         
@@ -223,7 +218,6 @@ def record_payment(edited_by):
         paid_amount = input("Enter payment amount: ")
         receipt_no = input("Enter receipt number (optional): ")
         
-        # Create new version record (insert into charge history)
         charge_his_id = charge_data[1]
         new_version = charge_data[11] + 1
         
@@ -235,7 +229,6 @@ def record_payment(edited_by):
         """, (charge_his_id, charge_data[2], charge_data[3], charge_data[4], payment_date, charge_data[6],
               charge_data[7], charge_data[8], paid_amount, paid_status_id, new_version, edited_by))
         
-        # Deactivate old record
         cur.execute("UPDATE charges SET charge_status=%s WHERE charge_id=%s", (paid_status_id, int(charge_id)))
         
         conn.commit()

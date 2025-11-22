@@ -2,6 +2,8 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 from datetime import datetime
 
+from medication import prescribe_medication_adm
+
 try:
     conn = connect(
         host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
@@ -33,7 +35,7 @@ try:
 except Error as e:
     print(e)
 
-def record_discharge(edited_by):
+def record_discharge(edited_by, cpr_no):
     try:
         cur.execute("""
         SELECT a.adm_id, p.patient_name, p.cpr_no, a.adm_date, s.staff_name
@@ -55,7 +57,7 @@ def record_discharge(edited_by):
         
         while True:
             try:
-                adm_id = int(input("Enter Admission ID: "))
+                adm_id = int(input("Enter Admission ID : "))
                 if adm_id in [i[0] for i in admissions]:
                     break
                 else:
@@ -65,13 +67,13 @@ def record_discharge(edited_by):
         
         while True:
             try:
-                discharge_date_input = input("Enter discharge date (YYYY-MM-DD): ")
+                discharge_date_input = input("Enter discharge date (YYYY-MM-DD) : ")
                 discharge_date = datetime.strptime(discharge_date_input, "%Y-%m-%d").date()
                 break
             except ValueError:
                 print("Invalid date format. Use YYYY-MM-DD.")
         
-        discharge_advice = input("Enter discharge advice/notes: ")
+        discharge_advice = input("Enter discharge advice : ")
         
         while True:
             try:
@@ -82,27 +84,27 @@ def record_discharge(edited_by):
                 print("Invalid date format. Use YYYY-MM-DD.")
         
         while True:
-            discharge_medication = input("Is discharge medication provided (Yes/No): ").lower()
+            discharge_medication = input("Is discharge medication provided (Yes/No) : ").lower()
             if discharge_medication in ('yes', 'no'):
                 discharge_medication = discharge_medication.capitalize()
+                prescribe_medication_adm(adm_id, edited_by)
                 break
             print("Enter only Yes or No.")
         
         while True:
-            charges_paid = input("Are all charges paid (Yes/No): ").lower()
+            charges_paid = input("Are all charges paid (Yes/No) : ").lower()
             if charges_paid in ('yes', 'no'):
                 charges_paid = charges_paid.capitalize()
                 break
             print("Enter only Yes or No.")
         
         while True:
-            day_off_cert = input("Issue day-off certificate (Yes/No): ").lower()
+            day_off_cert = input("Issue day-off certificate (Yes/No) : ").lower()
             if day_off_cert in ('yes', 'no'):
                 day_off_cert = day_off_cert.capitalize()
                 break
             print("Enter only Yes or No.")
         
-        # Insert discharge record
         cur.execute("""
         INSERT INTO tbl_discharge 
         (adm_id, discharge_date, discharge_medication, discharge_advice, followup_date, 
@@ -113,71 +115,11 @@ def record_discharge(edited_by):
         
         dis_id = cur.lastrowid
         cur.execute("UPDATE tbl_discharge SET dis_his_id=%s WHERE dis_id=%s", (dis_id, dis_id))
-        
-        # Update admission to mark as discharged
+
         cur.execute("UPDATE tbl_admission SET payment=%s WHERE adm_id=%s", (charges_paid, adm_id))
         
         conn.commit()
         print("Patient discharged successfully.")
-        
-    except Error as e:
-        print(f" Database Error: {e}")
-
-def add_discharge_medication(edited_by):
-    """Add/prescribe medication at discharge"""
-    try:
-        from medication import prescribe_medication
-        
-        # Get recent discharges
-        cur.execute("""
-        SELECT d.dis_id, d.adm_id, p.patient_name, d.discharge_date
-        FROM tbl_discharge d
-        JOIN tbl_admission a ON d.adm_id = a.adm_id
-        JOIN patients p ON a.patient_id = p.patient_id
-        WHERE d.discharge_medication='No'
-        ORDER BY d.discharge_date DESC LIMIT 10
-        """)
-        
-        discharges = cur.fetchall()
-        if not discharges:
-            print("No pending discharge medication records.")
-            return
-        
-        print("Recent Discharges (pending medication):")
-        headers = [i[0] for i in cur.description]
-        print(tabulate(discharges, headers=headers, tablefmt='pretty'))
-        
-        while True:
-            try:
-                dis_id = int(input("Enter Discharge ID: "))
-                if dis_id in [i[0] for i in discharges]:
-                    break
-                else:
-                    print("Invalid discharge ID.")
-            except ValueError:
-                print("Enter only integers.")
-        
-        # Get the related consultation to prescribe medication
-        cur.execute("""
-        SELECT tc.cons_id FROM tbl_consultation tc
-        JOIN appointments a ON tc.appt_id = a.appt_id
-        JOIN tbl_admission ad ON ad.patient_id = a.patient_id
-        WHERE ad.adm_id = (SELECT adm_id FROM tbl_discharge WHERE dis_id=%s)
-        ORDER BY tc.cons_date DESC LIMIT 1
-        """, (dis_id,))
-        
-        result = cur.fetchone()
-        if result:
-            cons_id = result[0]
-            # Use existing prescribe_medication function
-            prescribe_medication(edited_by)
-            
-            # Mark discharge medication as added
-            cur.execute("UPDATE tbl_discharge SET discharge_medication='Yes' WHERE dis_id=%s", (dis_id,))
-            conn.commit()
-            print("Discharge medication added successfully.")
-        else:
-            print("Could not find related consultation.")
         
     except Error as e:
         print(f" Database Error: {e}")
