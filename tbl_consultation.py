@@ -1,7 +1,7 @@
 from mysql.connector import connect, Error
 from tabulate import tabulate
 from datetime import datetime
-from medication import prescribe_medication
+from medication import prescribe_medication_cons
 
 try:
     conn = connect(
@@ -128,7 +128,7 @@ def add_consultation(edited_by, cpr_no):
     cur.execute('''UPDATE tbl_consultation SET cons_his_id = %s WHERE cons_id = %s''', (cons_his_id, cons_his_id))
 
     if medication == 'yes':
-        prescribe_medication(cons_id, edited_by)
+        prescribe_medication_cons(cons_id, edited_by)
 
     if discharge_flag:
         cur.execute('''UPDATE appointments 
@@ -204,7 +204,7 @@ def manage_followup(edited_by, cpr_no):
             break
         print("Enter only 'Yes' or 'No'.")
     if medication == 'yes':
-        prescribe_medication(cons_id, edited_by)
+        prescribe_medication_cons(cons_id, edited_by)
 
     cur.execute('''UPDATE tbl_consultationF 
                 SET lab_result = %s, imaging_result = %s, diagnosis = %s,
