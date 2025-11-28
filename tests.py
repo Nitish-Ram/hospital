@@ -37,7 +37,13 @@ except Error as e:
 
 def add_test_cons(edited_by, cons_id):
     try:
-        test_name = input("Enter Test Name : ")
+        test_name_text = input("Enter Test Name: ")
+        cur.execute("SELECT item_id FROM lookup_code WHERE item_name=%s", (test_name_text,))
+        names = cur.fetchone()
+        if not names:
+            print("Test not found!")
+            return
+        test_name = names[0]
         fees_paid = input("Fees Paid (Yes/No) : ")
         paid_amt = input("Enter Paid Amount : ")
         while True:
@@ -66,7 +72,13 @@ def add_test_cons(edited_by, cons_id):
         print(f" Database Error: {e}")
 def add_test_adm(edited_by, adm_id):
     try:
-        test_name = input("Enter Test Name : ")
+        test_name_text = input("Enter Test Name: ")
+        cur.execute("SELECT item_id FROM lookup_code WHERE item_name=%s", (test_name_text,))
+        names = cur.fetchone()
+        if not names:
+            print("Test not found!")
+            return
+        test_name = names[0]
         fees_paid = input("Fees Paid (Yes/No) : ")
         paid_amt = input("Enter Paid Amount : ")
         while True:
@@ -99,6 +111,9 @@ def view_tests():
             ch=input("Enter choice 1.Search test 2.View all tests")
             if ch=='1':
                 test_id = input("Enter Test ID: ")
+                if not test_id.isdigit():
+                    print("Invalid Test ID. Must be a number.")
+                    continue
                 cur.execute('''
                 SELECT test_id, cons_id, test_name, fees_paid, paid_amt, payment_date,receipt_no, test_result
                 FROM tests WHERE test_is_active='Yes' AND test_id=%s
@@ -128,9 +143,10 @@ def update_test(edited_by):
         test_id = input("Enter Test ID: ")
         cur.execute("SELECT * FROM tests WHERE test_id=%s AND test_is_active='Yes'",(test_id,))
 
-        old_data=cur.fetchone()
-        new_data=list(old_data[1:-2])
-        new_data[9] += 1
+        old_data = cur.fetchone()
+        new_data = list(old_data)
+        new_data[11] += 1
+
 
         while True:
             ch=input("Enter choice 1. Update test result 2. Payment update : ")

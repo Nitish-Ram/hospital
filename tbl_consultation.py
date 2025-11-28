@@ -62,6 +62,11 @@ def add_consultation(edited_by, cpr_no):
                 JOIN staff s ON a.doctor_id = s.staff_id
                 WHERE a.appt_is_active = 'Yes' AND p.cpr_no = %s""", (cpr_no,))
     data = cur.fetchall()
+
+    if not data:
+        print("No active appointment found for this patient.")
+        return 'no', False, None
+
     headers = [i[0] for i in cur.description]
     print(tabulate(data, headers=headers, tablefmt='pretty'))
 
@@ -141,6 +146,7 @@ def add_consultation(edited_by, cpr_no):
                     (cons_id, medication.capitalize(), edited_by))
         print("Follow-up record created in tbl_consultationF.")
     return discharge_flag,(imaging_test == 'yes' or lab_test == 'yes'),cons_id
+
 
 def manage_followup(edited_by, cpr_no):
     cur.execute('''

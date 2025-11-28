@@ -35,7 +35,7 @@ except Error as e:
 
 def add_admission(edited_by, cpr_no):
     cur.execute('''SELECT patient_id, patient_name from patients
-                WHERE cpr_no = %s''', (cpr_no))
+                WHERE cpr_no = %s''', (cpr_no,))
     patients = cur.fetchone()
     if not patients:
         print("Could not find a patient with the following CPR number.")
