@@ -2,15 +2,7 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
-    
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     cur = conn.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS inventories (
                 inv_id INT AUTO_INCREMENT PRIMARY KEY, 

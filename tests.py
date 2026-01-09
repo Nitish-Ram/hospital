@@ -3,14 +3,7 @@ from tabulate import tabulate
 from datetime import datetime
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     cur = conn.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS tests (
@@ -108,7 +101,7 @@ def add_test_adm(edited_by, adm_id):
 def view_tests():
     try:
         while True:
-            ch=input("Enter choice 1.Search test 2.View all tests")
+            ch=input("Enter choice 1.Search test 2.View all tests\n>")
             if ch=='1':
                 test_id = input("Enter Test ID: ")
                 if not test_id.isdigit():
@@ -144,15 +137,15 @@ def update_test(edited_by):
         cur.execute("SELECT * FROM tests WHERE test_id=%s AND test_is_active='Yes'",(test_id,))
 
         old_data = cur.fetchone()
-        new_data = list(old_data)
-        new_data[11] += 1
+        new_data = list(old_data[1:-2])
+        new_data[-1] += 1
 
 
         while True:
             ch=input("Enter choice 1. Update test result 2. Payment update : ")
             if ch=='1':
                 new_result = input("Enter New Test Result: ")
-                new_data[7]=new_result
+                new_data[8]=new_result
             elif ch=='2':
                 paid_amt = input("Enter Paid Amount: ")
                 while True:
@@ -163,7 +156,7 @@ def update_test(edited_by):
                     except ValueError:
                         print("Invalid date format. Use YYYY-MM-DD.")
                 receipt_no = input("Enter Receipt Number: ")
-                new_data[4],new_data[5],new_data[6]=paid_amt,payment_date,receipt_no
+                new_data[5],new_data[6],new_data[7]=paid_amt,payment_date,receipt_no
             else:
                 print("invalid input")
                 continue
@@ -171,8 +164,8 @@ def update_test(edited_by):
         
         cur.execute('''
         INSERT INTO tests 
-        (test_his_id,cons_id, test_name, fees_paid, paid_amt, payment_date, receipt_no, test_result, test_is_active, version, edited_by)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',(*new_data,edited_by))
+        (test_his_id,cons_id, adm_id, test_name, fees_paid, paid_amt, payment_date, receipt_no, test_result, test_is_active, version, edited_by)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',(*new_data,edited_by))
 
         cur.execute("UPDATE tests SET test_is_active='No' WHERE test_id=%s",(test_id,))
         conn.commit()

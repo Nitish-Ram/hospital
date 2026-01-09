@@ -4,15 +4,8 @@ from datetime import datetime
 from tabulate import tabulate
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
-    
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
+
     cur = conn.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS staff (
                 staff_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,7 +47,7 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
-    '''INSERT INTO patients (cpr_no, Patient_name,  phone_no , next-of-kin, dob, relationship, emergency_contact) VALUES 
+    '''INSERT INTO patients (cpr_no, Patient_name,  phone_no , next_of_kin, dob, relationship, emergency_contact) VALUES 
     ('980652332' ,'SANA ISA YUSUF', '39802379', 'BUQAIS', '1998-06-06','Sister', '35100089'),
     ('880795202' ,'NADIA AHMED', '36802521', 'MOHAMED', '1988-07-07','Father', '34804231'),
     ('531209451' ,'MARIAPPAN SAVARIRAJ', '39480964', 'MANI', '1953-12-12','son', '39802374')'''

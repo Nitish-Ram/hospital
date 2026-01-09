@@ -2,14 +2,7 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     
     cur = conn.cursor()
     #lookup_code
@@ -23,6 +16,7 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
+    '''
     cur.execute("""INSERT INTO lookup_code (item_name, item_category, item_if_active, version)
                 VALUES
                 ('Active', 'patient_status', 'Yes', 0),
@@ -90,6 +84,7 @@ try:
                 ('Bed_1', 'Bed', 'Yes', 0),
                 ('Bed_2', 'Bed', 'Yes', 0),
                 ('Bed_3', 'Bed', 'Yes', 0)""")
+            '''
     conn.commit()
 except Error as e:
     print(e)
