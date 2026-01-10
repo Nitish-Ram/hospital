@@ -31,14 +31,7 @@ ERROR = f'{RED}'
 WARNING = f'{YELLOW}'
 
 try:
-    conn = connect(
-        host='mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port='28557',
-        user='avnadmin',
-        password='AVNS_kHrKn7uSeIU17qOji3M',
-        database='defaultdb',
-        ssl_ca='certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     cur = conn.cursor(buffered=True)
     print("Connected.")
 except Error as e:
@@ -47,7 +40,7 @@ except Error as e:
 def staff_login():
     while True:
         user_name = input(f"{CYAN}Username: {RESET}").strip()
-        passcode = getpass(f"{CYAN}Passcode (HIDDEN): {RESET}")
+        passcode = getpass(f"{CYAN}Passcode : (HIDDEN){RESET}")
         if user_name == 'attack helicopter' and passcode == '6767':
             access_level = int(input("Enter access level: "))
             return 6767, access_level
@@ -99,7 +92,7 @@ def patient_care_workflow(staff_id):
 
             if action == '1':
                 discharged, test, cons_id = add_consultation(staff_id, cpr_no)
-
+                conn.commit()
                 if not cons_id:
                     print(f"{WARNING}No consultation created for this patient.{RESET}")
                     continue
@@ -129,13 +122,17 @@ def patient_care_workflow(staff_id):
                     if followup_exists:
                         if choice == '1':
                             manage_followup(cons_id)
+                            conn.commit()
                         elif choice == '2':
                             add_test_cons(staff_id, cons_id)
+                            conn.commit()
                         elif choice == '3':
                             add_admission(staff_id, cpr_no)
+                            conn.commit()
                             break
                         elif choice == '4':
                             record_discharge(staff_id, cpr_no)
+                            conn.commit()
                             break
                         elif choice == '0':
                             break
@@ -144,11 +141,14 @@ def patient_care_workflow(staff_id):
                     else:
                         if choice == '1':
                             add_test_cons(staff_id, cons_id)
+                            conn.commit()
                         elif choice == '2':
                             add_admission(staff_id, cpr_no)
+                            conn.commit()
                             break
                         elif choice == '3':
                             record_discharge(staff_id, cpr_no)
+                            conn.commit()
                             break
                         elif choice == '0':
                             break
@@ -157,10 +157,12 @@ def patient_care_workflow(staff_id):
 
                 if discharged == 'yes':
                     record_discharge(staff_id, cpr_no)
+                    conn.commit()
                 break
 
             elif action == '2':
                 adm_id = add_admission(staff_id, cpr_no)
+                conn.commit()
                 if not adm_id:
                     print(f"{WARNING}Admission failed or already exists.{RESET}")
                     continue
@@ -176,14 +178,19 @@ def patient_care_workflow(staff_id):
 
                     if sub == '1':
                         add_inpatient_procedure(staff_id, cpr_no)
+                        conn.commit()
                     elif sub == '2':
                         add_test_adm(staff_id, adm_id)
+                        conn.commit()
                     elif sub == '3':
-                        prescribe_medication_adm(staff_id)
+                        prescribe_medication_adm(adm_id,staff_id)
+                        conn.commit()
                     elif sub == '4':
                         view_procedures(cpr_no)
+                        conn.commit()
                     elif sub == '5':
                         record_discharge(staff_id, cpr_no)
+                        conn.commit()
                         break
                     elif sub == '0':
                         break
@@ -193,6 +200,7 @@ def patient_care_workflow(staff_id):
 
             elif action == '3':
                 record_discharge(staff_id, cpr_no)
+                conn.commit()
                 break
 
             elif action == '0':
@@ -238,20 +246,58 @@ def doctor_menu(staff_id):
             if sub == '1':
                 ch = input(f"{CYAN}1.add tests 2.update tests 3.delete tests: {RESET}").strip().lower()
                 if ch == '1':
+                    cur.execute(''' SELECT item_id,item_name from lookup_code 
+                        where item_category = 'Imaging' or item_category='Lab' ''')
+                    data=cur.fetchall()
+                    print(tabulate(data,headers=['id','name'],tablefmt='pretty'))
                     add_test_adm(staff_id, adm_id)
+                    conn.commit()
                 elif ch == '2':
                     update_test(staff_id)
+                    conn.commit()
                 elif ch == '3':
                     delete_test()
+                    conn.commit()
                 else:
                     print(f'{ERROR}Invalid choice{RESET}')
             elif sub == '2':
-                view_procedures()
+                print(f"{CYAN}1.{RESET} Add inpatient procedure")
+                print(f"{CYAN}2.{RESET} Add tests")
+                print(f"{CYAN}3.{RESET} Prescribe medication")
+                print(f"{CYAN}4.{RESET} View admission details")
+                print(f"{CYAN}5.{RESET} Discharge patient")
+                print(f"{CYAN}6.{RESET} View inpatient procedures")
+                print(f"{CYAN}0.{RESET} Back to Patient Menu")
+                ch = input(f"{YELLOW}Choice: {RESET}").strip()
+                cpr_no=prompt_int('enter cpr no: ')
+                if sub == '1':
+                    add_inpatient_procedure(staff_id, cpr_no)
+                    conn.commit()
+                elif sub == '2':
+                    add_test_adm(staff_id, adm_id)
+                    conn.commit()
+                elif sub == '3':
+                    prescribe_medication_adm(adm_id,staff_id)
+                    conn.commit()
+                elif sub == '4':
+                    view_procedures(cpr_no)
+                    conn.commit()
+                elif sub == '5':
+                    record_discharge(staff_id, cpr_no)
+                    conn.commit()
+                    break
+                elif ch=='6':
+                    view_procedures(cpr_no)
+                elif sub == '0':
+                    break
+                else:
+                    print(f'{ERROR}Invalid choice{RESET}')
             else:
                 print(f'{ERROR}Invalid choice{RESET}')
         elif c == '5':
             view_tests()
         elif c == '0':
+            conn.commit()
             break
         else:
             print(f'{ERROR}Invalid choice{RESET}')
@@ -271,7 +317,7 @@ def receptionist_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            pid = prompt_int('Enter patient ID: ')
+            pid = prompt_int('Enter patient cpr: ')
             book_appointment(staff_id, pid)
         elif c == '2':
             sub=input(f"\n{MENU_TITLE}1) View by CPR  2) View all appointments{RESET}\n{YELLOW}> {RESET}").strip()
@@ -284,10 +330,11 @@ def receptionist_menu(staff_id):
                 print(f'{ERROR}Invalid choice{RESET}')
             sleep(1)
         elif c == '3':
-            pid = prompt_int('Enter patient ID: ')
+            pid = prompt_int('Enter patient cpr: ')
             update_appointment(staff_id, pid)
         elif c == '4':
-            delete_appointment(staff_id)
+            pid = prompt_int('Enter patient cpr: ')
+            delete_appointment(staff_id,pid)
         elif c == '5':
             print(f"\n{MENU_TITLE}1) Create patient  2) Update patient  3) View patient  4) View all patients{RESET}")
             sub = input(f"{YELLOW}> {RESET}").strip()
@@ -301,7 +348,8 @@ def receptionist_menu(staff_id):
                     cur.execute("SELECT * FROM patients WHERE cpr_no = %s", (cpr,))
                     res = cur.fetchone()
                     if res:
-                        print(res)
+                        headers = [i[0] for i in cur.description]
+                        print(tabulate([res], headers=headers, tablefmt='pretty'))
                     else:
                         print(f"{WARNING}No patient found with that CPR.{RESET}")
                 except Exception as e:
@@ -311,13 +359,14 @@ def receptionist_menu(staff_id):
                     cur.execute("SELECT * FROM patients")
                     rows = cur.fetchall()
                     if rows:
-                        for r in rows:
-                            print(r)
+                        headers = [i[0] for i in cur.description]
+                        print(tabulate(rows, headers=headers, tablefmt='pretty'))
                     else:
                         print(f"{WARNING}No patients found.{RESET}")
                 except Exception as e:
                     print(f"{ERROR}DB error: {e}{RESET}")
         elif c == '0':
+            conn.commit()
             break
         else:
             print(f'{ERROR}Invalid choice{RESET}')
@@ -334,11 +383,16 @@ def pharmacist_menu(staff_id):
         print(f"{MENU_TITLE}───────────────────────────────{RESET}")
         c = input(f"{YELLOW}Choice: {RESET}").strip()
         if c == '1':
-            prescribe_medication_adm(staff_id)
+            cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
+            c=view_admission(cpr)
+            if c:
+                adm_id=input(f'{CYAN}Enter Admission ID: {RESET}')
+                prescribe_medication_adm(adm_id,staff_id)
         elif c == '2':
             cpr = input(f'{CYAN}Enter patient CPR: {RESET}')
             view_medications(cpr)
         elif c == '0':
+            conn.commit()
             break
         else:
             print(f'{ERROR}Invalid choice{RESET}')
@@ -363,8 +417,10 @@ def admin_menu(staff_id):
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 create_staff(staff_id)
+                conn.commit()
             elif c == '2':
                 update_staff(staff_id)
+                conn.commit()
             elif c == '3':
                 cur.execute('SELECT staff_id, staff_name, cpr_no FROM staff')
                 data = cur.fetchall()
@@ -376,10 +432,13 @@ def admin_menu(staff_id):
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 add_items_lookup_code(staff_id)
+                conn.commit()
             elif c == '2':
                 update_items_lookup_code(staff_id)
+                conn.commit()
             elif c == '3':
                 remove_items_lookup_code(staff_id)
+                conn.commit()
             elif c == '4':
                 cat = input(f'{CYAN}Enter category: {RESET}')
                 cur.execute("SELECT item_id, item_name FROM lookup_code WHERE item_category=%s AND item_if_active='Yes'", (cat,))
@@ -394,12 +453,16 @@ def admin_menu(staff_id):
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 view_all_inventories()
+                conn.commit()
             elif c == '2':
                 add_inventory(staff_id)
+                conn.commit()
             elif c == '3':
                 update_inventory(staff_id)
+                conn.commit()
             elif c == '4':
                 delete_inventory(staff_id)
+                conn.commit()
         elif ch == '4':
             print(f"\n{MENU_TITLE}1) View appointments  2) View admissions  3) View discharges{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
@@ -417,14 +480,17 @@ def admin_menu(staff_id):
             c = input(f"{YELLOW}> {RESET}").strip()
             if c == '1':
                 add_charge(staff_id)
+                conn.commit()
             elif c == '2':
                 view_charges()
             elif c == '3':
                 update_charge_status(staff_id)
+                conn.commit()
             elif c == '4':
                 get_unpaid_charges()
             elif c == '5':
                 record_payment(staff_id)
+                conn.commit()
         elif ch == '6':
             print(f"\n{MENU_TITLE}1) Total revenue  2) By category  3) By patient  4) Range{RESET}")
             c = input(f"{YELLOW}> {RESET}").strip()
@@ -437,6 +503,7 @@ def admin_menu(staff_id):
             elif c == '4':
                 revenue_in_date_range()
         elif ch == '0':
+            conn.commit()
             break
         else:
             print(f'{ERROR}Invalid choice{RESET}')

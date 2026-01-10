@@ -4,14 +4,7 @@ from datetime import datetime
 from medication import prescribe_medication_cons
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     
     cur = conn.cursor()
 
@@ -123,28 +116,30 @@ def add_consultation(edited_by, cpr_no):
         print("Enter only yes or no.")
 
     cur.execute('''INSERT INTO tbl_consultation 
-                   (appt_id, doctor_id, clinic, complaints, cons_notes, lab_test, imaging_test, discharged, medication, edited_by)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
+                (appt_id, doctor_id, clinic, complaints, cons_notes, lab_test, imaging_test, discharged, medication, edited_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
                 (appt_id, doctor_id, clinic, complaints, cons_notes, lab_test.capitalize(), imaging_test.capitalize(),
-                 'Yes' if discharge_flag else 'No', medication.capitalize(), edited_by))
-
+                'Yes' if discharge_flag else 'No', medication.capitalize(), edited_by))
+    conn.commit()
     cons_id = cur.lastrowid
     cons_his_id = cons_id
     cur.execute('''UPDATE tbl_consultation SET cons_his_id = %s WHERE cons_id = %s''', (cons_his_id, cons_his_id))
 
     if medication == 'yes':
         prescribe_medication_cons(cons_id, edited_by)
+        conn.commit()
 
     if discharge_flag:
         cur.execute('''UPDATE appointments 
-                       SET appt_if_active = 'No', edited_by = %s 
-                       WHERE appt_id = %s''', (edited_by, appt_id))
+                    SET appt_if_active = 'No', edited_by = %s 
+                    WHERE appt_id = %s''', (edited_by, appt_id))
     else:
         cur.execute('''INSERT INTO tbl_consultationF 
-                       (cons_id, discharged, medication, edited_by)
-                       VALUES (%s, 'No', %s, %s)''',
+                    (cons_id, discharged, medication, edited_by)
+                    VALUES (%s, 'No', %s, %s)''',
                     (cons_id, medication.capitalize(), edited_by))
         print("Follow-up record created in tbl_consultationF.")
+    conn.commit()
     return discharge_flag,(imaging_test == 'yes' or lab_test == 'yes'),cons_id
 
 

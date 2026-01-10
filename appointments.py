@@ -3,14 +3,7 @@ from tabulate import tabulate
 from datetime import datetime
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     cur = conn.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS appointments (
                 appt_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,7 +56,7 @@ def book_appointment(edited_by, cpr_no):
     patient_id = patient[0]
 
     cur.execute("""SELECT item_id, item_name from lookup_code
-                WHERE category = 'Clinic' and item_if_active = 'Yes'""")
+                WHERE item_category = 'Location' and item_if_active = 'Yes'""")
     clinics = cur.fetchall()
     print("Available clinics")
     for i in clinics:
@@ -79,12 +72,23 @@ def book_appointment(edited_by, cpr_no):
         except ValueError:
             print("Enter only integers.")
 
-    cur.execute('''SELECT staff_id, staff_name FROM staff
-                WHERE designation = 'Doctor' and department = %s''', (clinic_id,))
+    cur.execute('''SELECT staff_id, staff_name ,department FROM staff
+                WHERE designation = 'Doctor' ''')
     doctors = cur.fetchall()
     print("\nAvailable doctors")
+    print('''606	Neurology
+607	ENT
+608	Cardiology
+609	Cardio Thoracic surgery
+610	General Medicine
+611	General Surgery
+612	Orthopedics
+613	Nephrology
+614	Urology
+615	Gynecology''')
     for i in doctors:
-        print(f"{i[0]} . {i[1]}")
+        
+        print(f"{i[0]} . {i[1]} . {i[2]}")
 
     while True:
         try:
@@ -119,11 +123,12 @@ def book_appointment(edited_by, cpr_no):
             print("Enter only numbers.")
 
     cur.execute('''INSERT INTO appointments (
-                patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_fee_amount, edited_by) 
+                patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_paid_amount, edited_by) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s)''',
                 (patient_id, doctor_id, clinic_id, appt_book_time, cons_fee_paid.capitalize(), cons_fee_amount, edited_by))
     appt_his_id = cur.lastrowid
     cur.execute('''UPDATE appointments SET appt_his_id = %s WHERE appt_id = %s''', (appt_his_id, appt_his_id))
+    conn.commit()
 
 def update_appointment(edited_by, cpr_no):
     cur.execute("SELECT patient_id, patient_name FROM patients WHERE cpr_no = %s", (cpr_no,))
@@ -134,15 +139,13 @@ def update_appointment(edited_by, cpr_no):
     patient_id = patient[0]
 
     cur.execute("""SELECT appt_id, appt_book_time, clinic FROM appointments
-                WHERE patient_id = %s and appt_if_active = 'Yes'""", (patient_id,))
+                WHERE patient_id = %s and appt_is_active = 'Yes'""", (patient_id,))
     data = cur.fetchall()
     header = [i[0] for i in cur.description]
     if not data:
         print("Couldn't find any active appointments.")
     else:
         print(tabulate(data, headers = header, tablefmt = 'pretty'))
-        for i in data:
-            print(f"{i[0]} . {i[1]}")
 
     while True:
         try:
@@ -164,7 +167,7 @@ def update_appointment(edited_by, cpr_no):
         else:
             break
 
-    if ch == 1:
+    if ch == '1':
         clinic_id = [i[2] for i in data if i[0] == appt_id][0]
         cur.execute("SELECT item_name FROM lookup_code WHERE item_id = %s", (clinic_id,))
         clinic_name = cur.fetchone()[0]
@@ -188,7 +191,7 @@ def update_appointment(edited_by, cpr_no):
         old_data[2] = new_doctor
         old_data[-1] += 1
 
-    elif ch == 2:
+    elif ch == '2':
         while True:
             try:
                 date_input = input("Enter new date (YY-MM-DD) and time (HH:MM:SS) : ")
@@ -199,16 +202,17 @@ def update_appointment(edited_by, cpr_no):
         old_data[4] = new_cons_date
         old_data[-1] += 1
     
-    elif ch == 3:
+    elif ch == '3':
         new_paid_amount = input("Enter new amount : ")
         old_data[-2] = new_paid_amount
         old_data[-1] += 1
 
-    cur.execute('''UPDATE appointments SET appt_if_active = 'No'
-                WHERE appt_id = %s''', (appt_id,))
     cur.execute('''INSERT into appointments (
                 appt_his_id, patient_id, doctor_id, clinic, appt_book_time, cons_fee_paid, cons_paid_amount, version, edited_by)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''',(*old_data, edited_by))
+    cur.execute('''UPDATE appointments SET appt_is_active = 'No'
+                WHERE appt_id = %s''', (appt_id,))
+    conn.commit()
     
 def delete_appointment(edited_by, cpr_no):
     cur.execute("SELECT patient_id, patient_name FROM patients WHERE cpr_no = %s", (cpr_no,))
@@ -219,7 +223,7 @@ def delete_appointment(edited_by, cpr_no):
     patient_id = patient[0]
 
     cur.execute("""SELECT appt_id, appt_book_time, clinic FROM appointments
-                WHERE patient_id = %s and appt_if_active = 'Yes'""", (patient_id,))
+                WHERE patient_id = %s and appt_is_active = 'Yes'""", (patient_id,))
     data = cur.fetchall()
     header = [i[0] for i in cur.description]
     if not data:
@@ -238,5 +242,6 @@ def delete_appointment(edited_by, cpr_no):
                 print("Enter a valid appointment ID.")
         except ValueError:
             print("Enter only integers.")
-    cur.execute('''UPDATE appointments SET appt_if_active = 'No', edited_by = %s
+    cur.execute('''UPDATE appointments SET appt_is_active = 'No', edited_by = %s
                 WHERE appt_id = %s''', (edited_by, appt_id))
+    conn.commit()

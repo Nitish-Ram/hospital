@@ -3,14 +3,7 @@ from tabulate import tabulate
 from datetime import datetime
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
 
     cur = conn.cursor()
 
@@ -71,6 +64,7 @@ def prescribe_medication_cons(cons_id, edited_by):
                 print("Invalid date format. Enter in YYYY-MM-DD format.")
         query = """INSERT INTO medication (cons_id, medicine, quantity, dose, instruction, valid_until, edited_by)
         VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        conn.commit()
         cur.execute(query, ( cons_id, medicine, quantity,
             dose, instruction, valid_until,
             edited_by))
@@ -128,9 +122,9 @@ def prescribe_medication_adm(adm_id, edited_by):
         print(" Error adding medication:", e)
 
 def view_medications(cpr_no):
-    type = input("View medications for 1.Consultation 2.Admission").strip()
+    type = input("View medications for 1.Consultation 2.Admission\n>").strip()
     if type == '1':
-        cur.execute('''SELECT p.patient_name,m.cons_id,m.medicine, m.quantity, m.dose, m.instruction)
+        cur.execute('''SELECT p.patient_name,m.cons_id,m.medicine, m.quantity, m.dose, m.instruction
                         FROM medication m
                         JOIN tbl_consultation c ON m.cons_id = c.cons_id
                         JOIN appointments a ON c.appt_id = a.appt_id

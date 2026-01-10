@@ -3,14 +3,7 @@ from datetime import datetime
 from tabulate import tabulate
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-    )
+    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
     
     cur = conn.cursor()
 
@@ -43,7 +36,7 @@ def add_admission(edited_by, cpr_no):
     patient_id = patients[0]
     patient_name = patients[1]
 
-    cur.execute("SELECT staff_id, staff_name from staff WHERE designation ='physician' OR designation = 'surgeon'")
+    cur.execute("SELECT staff_id, staff_name from staff WHERE designation ='Physician' OR designation = 'Surgeon'")
     staff = cur.fetchall()
     print(tabulate(staff, headers=["Staff ID", "Staff Name"], tablefmt="pretty"))
     valid_ids = [i[0] for i in staff]
@@ -71,6 +64,7 @@ def add_admission(edited_by, cpr_no):
                 AND item_id NOT IN
                 (SELECT t.ward FROM tbl_admission t LEFT JOIN tbl_discharge d ON t.adm_id = d.adm_id WHERE d.discharge_date IS NULL)''')
     beds = cur.fetchall()
+    print(tabulate(beds,headers=['Id','Name'],tablefmt='pretty'))
     if not beds:
         print("No beds available for admission at the moment.")
         return
@@ -98,9 +92,11 @@ def add_admission(edited_by, cpr_no):
     adm_his_id = cur.lastrowid
     cur.execute("""UPDATE tbl_admission SET adm_his_id = %s WHERE adm_id = %s""", (adm_his_id, adm_his_id))
     print(f"Patient {patient_name} admitted successfully to bed {bed_id}.")
+    conn.commit()
+    return adm_his_id
 
 def view_all_admissions():
-    cur.execute('''SELECT p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a
+    cur.execute('''SELECT a.adm_id, p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a
                 INNER JOIN patients p ON a.patient_id = p.patient_id 
                 LEFT JOIN tbl_discharge d ON a.adm_id = d.adm_id
                 INNER JOIN lookup_code l ON a.ward = l.item_id 
@@ -110,7 +106,7 @@ def view_all_admissions():
     print(tabulate(data,headers = headers, tablefmt = 'pretty'))
 
 def view_admission(cpr_no):
-    cur.execute('''SELECT p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a
+    cur.execute('''SELECT a.adm_id, p.cpr_no, p.patient_name, l.item_name AS bed FROM tbl_admission a
                 INNER JOIN patients p ON a.patient_id = p.patient_id 
                 LEFT JOIN tbl_discharge d ON a.adm_id = d.adm_id
                 INNER JOIN lookup_code l ON a.ward = l.item_id 
@@ -122,3 +118,4 @@ def view_admission(cpr_no):
         return
     headers = [i[0] for i in cur.description]
     print(tabulate(data, headers=headers, tablefmt='pretty'))
+    return True
