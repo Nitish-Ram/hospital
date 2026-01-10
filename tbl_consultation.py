@@ -4,8 +4,14 @@ from datetime import datetime
 from medication import prescribe_medication_cons
 
 try:
-    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
-    
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+        )
     cur = conn.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultation(
@@ -28,6 +34,7 @@ try:
                 FOREIGN KEY (doctor_id) REFERENCES staff(staff_id),
                 FOREIGN KEY (clinic) REFERENCES lookup_code(item_id)
                 )''')
+
     cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultationF(
                 consF_id INT AUTO_INCREMENT PRIMARY KEY,
                 consF_his_id INT,
@@ -45,6 +52,9 @@ try:
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (cons_id) REFERENCES tbl_consultation(cons_id)
                 )''')
+    
+    conn.commit()
+
 except Error as e:
     print(e)
 

@@ -5,9 +5,16 @@ from datetime import datetime
 from medication import prescribe_medication_adm
 
 try:
-    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
-    
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+        )
     cur = conn.cursor()
+
     cur.execute('''CREATE TABLE IF NOT EXISTS tbl_discharge(
                 dis_id INT AUTO_INCREMENT PRIMARY KEY,
                 dis_his_id INT,
@@ -25,6 +32,8 @@ try:
                 FOREIGN KEY (adm_id) REFERENCES tbl_admission (adm_id)
                 )''')
 
+    conn.commit()
+    
 except Error as e:
     print(e)
 

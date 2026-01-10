@@ -2,10 +2,17 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 
 try:
-    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+        )
     
     cur = conn.cursor()
-    #lookup_code
+
     cur.execute('''CREATE TABLE IF NOT EXISTS lookup_code (
                 item_id INT AUTO_INCREMENT PRIMARY KEY,
                 item_his_id INT,
@@ -40,6 +47,7 @@ try:
                 ('Bed_3', 'Bed', 'Yes', 0)""")
             '''
     conn.commit()
+
 except Error as e:
     print(e)
 

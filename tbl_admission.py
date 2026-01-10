@@ -3,10 +3,15 @@ from datetime import datetime
 from tabulate import tabulate
 
 try:
-    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
-    
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+        )
     cur = conn.cursor()
-
 
     cur.execute('''CREATE TABLE IF NOT EXISTS tbl_admission(
                 adm_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -23,6 +28,9 @@ try:
                 FOREIGN KEY (adm_doctor) REFERENCES staff(staff_id),
                 FOREIGN KEY (ward) REFERENCES lookup_code(item_id)
                 )''')
+    
+    conn.commit()
+
 except Error as e:
     print(e)
 

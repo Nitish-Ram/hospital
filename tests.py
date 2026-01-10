@@ -3,7 +3,14 @@ from tabulate import tabulate
 from datetime import datetime
 
 try:
-    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+        )
     cur = conn.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS tests (
@@ -25,6 +32,9 @@ try:
                 FOREIGN KEY (test_name) REFERENCES lookup_code(item_id),
                 FOREIGN KEY (adm_id) REFERENCES tbl_admission(adm_id)
                 )''')
+    
+    conn.commit()
+
 except Error as e:
     print(e)
 

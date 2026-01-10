@@ -2,8 +2,16 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 
 try:
-    conn= connect(host="localhost", user="root", password="Fawaz@33448113",database="hospital")
+    conn = connect(
+        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
+        port = '28557',
+        user = 'avnadmin',
+        password = 'AVNS_kHrKn7uSeIU17qOji3M',
+        database = 'defaultdb',
+        ssl_ca = 'certs/ca.pem'
+        )
     cur = conn.cursor()
+
     cur.execute('''CREATE TABLE IF NOT EXISTS inventories (
                 inv_id INT AUTO_INCREMENT PRIMARY KEY, 
                 inv_his_id INT,
@@ -14,28 +22,9 @@ try:
                 edited_by INT NULL,
                 edited_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
-    #first run to populate initial data
-    """   
-    cur.execute('''INSERT INTO inventories (inv_name, inv_category, inv_if_active, version)
-                VALUES
-                ('Paracetamol 200mg', 'Tablet', 'Yes',1),
-                ('Paracetamol 500mg', 'Tablet', 'Yes',1),
-                ('Brufen 200mg', 'Tablet', 'Yes',1),
-                ('Brufen 400mg', 'Tablet', 'Yes',1),
-                ('B complex vitamin', 'Tablet', 'Yes',1),
-                ('Multivitamin', 'Tablet', 'Yes',1),
-                ('B complex', 'Injection', 'Yes',1),
-                ('Voveron Pain inj', 'Injection', 'Yes',1),
-                ('Paracetamol inj', 'Injection', 'Yes',1),
-                ('Voveron Pain inj', 'Injection', 'Yes',1),
-                ('Antibiotic inj', 'Injection', 'Yes',1),
-                ('Penicillin 500mg', 'Tablet', 'Yes',1),
-                ('Azithromycin 250mg', 'Tablet', 'Yes',1),
-                ('Saline infusion', 'IV fluid', 'Yes',1),
-                ('Dextrose infusion', 'IV fluid', 'Yes',1),
-                ('Antibiotic infusion', 'IV fluid', 'Yes',1)
-                ''')
-            """  
+    
+    conn.commit()
+
 except Error as e:
     print(e)
 
