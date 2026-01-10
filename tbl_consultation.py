@@ -2,16 +2,10 @@ from mysql.connector import connect, Error
 from tabulate import tabulate
 from datetime import datetime
 from medication import prescribe_medication_cons
+from db_config import config
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-        )
+    conn = config()
     cur = conn.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS tbl_consultation(

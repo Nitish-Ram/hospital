@@ -1,16 +1,10 @@
 from mysql.connector import connect, Error
 from datetime import datetime
 from tabulate import tabulate
+from db_config import config
 
 try:
-    conn = connect(
-        host = 'mysql-guyandchair-hospitaldb344.l.aivencloud.com',
-        port = '28557',
-        user = 'avnadmin',
-        password = 'AVNS_kHrKn7uSeIU17qOji3M',
-        database = 'defaultdb',
-        ssl_ca = 'certs/ca.pem'
-        )
+    conn = config()
     cur = conn.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS tbl_admission(
