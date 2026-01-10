@@ -41,7 +41,7 @@ except Error as e:
 def staff_login():
     while True:
         user_name = input(f"{CYAN}Username: {RESET}").strip()
-        passcode = getpass(f"{CYAN}Passcode : (HIDDEN){RESET}")
+        passcode = getpass(f"{CYAN}Passcode (HIDDEN): {RESET}")
         if user_name == 'attack helicopter' and passcode == '6767':
             access_level = int(input("Enter access level: "))
             return 6767, access_level
